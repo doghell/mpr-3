@@ -1,0 +1,36 @@
+#
+#	stndRel.files - Release Files needed for the binary installation 
+#
+#	Copyright (c) Embedthis Software LLC, 2003-2010. All Rights Reserved.
+#
+
+SrcD=${BLD_TOP}/doc/product
+DestD=${BLD_PREFIX}
+makeDir "${DestD}"
+cpmod ${SrcD}/COPYRIGHT.TXT
+cpmod ${SrcD}/README.TXT
+patchFile "${DestD}/README.TXT"
+
+SrcD=${BLD_TOP}/doc/licenses
+DestD=${BLD_PREFIX}
+makeDir "${DestD}"
+cpmod ${SrcD}/LICENSE.TXT
+
+SrcD=${BLD_TOP}/package
+DestD=${BLD_LIB_PREFIX}
+makeDir "${DestD}"
+cpmod ${SrcD}/remove.sh "${DestD}/remove" 755
+if [ $TASK != Remove ] ; then
+    patchFile "${DestD}/remove"
+    chmod 755 "${DestD}/remove"
+fi
+
+if [ $BLD_HOST_OS = WIN ] ; then
+	SrcD=${BLD_TOP}/build/bin
+	DestD=${BLD_PREFIX}/bin
+	makeDir "${DestD}"
+	cpmod ${SrcD}/removeFiles.exe
+	if [ -f "$SrcD/removeFiles.exe.manifest" ] ; then
+		cpmod ${SrcD}/removeFiles.exe.manifest
+	fi
+fi

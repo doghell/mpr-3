@@ -1,0 +1,40 @@
+#
+#	mprDev.files - Copy development files for the binary use of the MPR.
+#
+#	Copyright (c) Embedthis Software LLC, 2003-2010. All Rights Reserved.
+#
+
+SrcD=${BLD_INC_DIR}
+DestD=${BLD_INC_PREFIX}
+makeDir "${DestD}"
+
+cpmod ${SrcD}/mpr.h
+cpmod ${SrcD}/mprOs.h
+cpmod ${SrcD}/mprUnix.h
+cpmod ${SrcD}/mprSsl.h
+cpmod ${SrcD}/mprTune.h
+cpmod ${SrcD}/pcre.h
+
+SrcD=${BLD_BIN_DIR}
+DestD=${BLD_LIB_PREFIX}
+makeDir "${DestD}"
+
+#	if [ "$BLD_FEATURE_STATIC" = 1 ] ; then
+#		cpmod ${SrcD}/libmpr${BLD_LIB} "${DestD}" 755
+#	fi
+#	if [ "$BLD_FEATURE_STATIC" = 1 ] ; then
+#		cpmod ${SrcD}/libmprStatic${BLD_ARCH} "${DestD}" 755
+#	fi
+
+
+SrcD=${BLD_OPENSSL_LIBPATH}
+DestD=${BLD_SBIN_PREFIX}
+makeDir "${DestD}"
+if [ "$BLD_FEATURE_OPENSSL" = 1 ] ; then
+	if [ $BLD_HOST_OS = WIN ] ; then
+		cpmod ${SrcD}/openssl${BLD_EXE} "${DestD}" 755
+		if [ -f "$SrcD/openssl${BLD_EXE}.manifest" ] ; then
+			cpmod "${SrcD}/openssl${BLD_EXE}.manifest" "${DestD}" 755
+		fi
+	fi
+fi

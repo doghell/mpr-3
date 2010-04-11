@@ -1,0 +1,32 @@
+#
+#	mprTest.files - Copy test source files for the MPR.
+#
+#	Copyright (c) Embedthis Software LLC, 2003-2010. All Rights Reserved.
+#
+
+# NOTE: Usage: cpmod src [dest] [perm] [owner.group]
+
+SrcD=${BLD_TOP}/src/mpr/test
+DestD=${BLD_SRC_PREFIX}/src/mpr/test
+makeDir "${DestD}"
+
+cpmod ${SrcD}/benchMpr.c
+cpmod ${SrcD}/files
+cpmod ${SrcD}/Makefile
+cpmod ${SrcD}/server.crt
+cpmod ${SrcD}/server.key
+cpmod ${SrcD}/server.key.pem
+cpmod ${SrcD}/testAlloc.c
+cpmod ${SrcD}/testBuf.c
+cpmod ${SrcD}/testCond.c
+cpmod ${SrcD}/testEvent.c
+cpmod ${SrcD}/testFile.c
+cpmod ${SrcD}/testHash.c
+cpmod ${SrcD}/testHttp.c
+cpmod ${SrcD}/testList.c
+cpmod ${SrcD}/testLock.c
+cpmod ${SrcD}/testMpr.c
+cpmod ${SrcD}/testPool.c
+cpmod ${SrcD}/testSocket.c
+cpmod ${SrcD}/testSprintf.c
+cpmod ${SrcD}/testUnicode.c

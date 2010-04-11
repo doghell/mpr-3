@@ -1,0 +1,105 @@
+#
+#	mprSrc.files - Copy source files to rebuild MPR from source.
+#
+#	Copyright (c) Embedthis Software LLC, 2003-2010. All Rights Reserved.
+#
+
+if [ $BLD_PRODUCT = mpr ] ; then
+    SRC=${BLD_TOP}/src
+    SRC_PREFIX="${BLD_SRC_PREFIX}/src"
+else
+    SRC=${BLD_TOP}/src/mpr
+    SRC_PREFIX="${BLD_SRC_PREFIX}/src/mpr"
+fi
+
+SrcD=${BLD_TOP}/src/mpr
+DestD=${SRC_PREFIX}
+makeDir "${DestD}"
+
+cpmod ${SrcD}/Makefile
+cpmod ${SrcD}/mpr.c
+cpmod ${SrcD}/mprAlloc.c
+cpmod ${SrcD}/mprAsyncSelectWait.c
+cpmod ${SrcD}/mprBrewFile.c
+cpmod ${SrcD}/mprBuf.c
+cpmod ${SrcD}/mprCond.c
+cpmod ${SrcD}/mprCrypt.c
+cpmod ${SrcD}/mprDiskFile.c
+cpmod ${SrcD}/mprEvent.c
+cpmod ${SrcD}/mprFile.c
+cpmod ${SrcD}/mprHash.c
+cpmod ${SrcD}/mprHttp.c
+cpmod ${SrcD}/mprList.c
+cpmod ${SrcD}/mprLock.c
+cpmod ${SrcD}/mprLog.c
+cpmod ${SrcD}/mprModule.c
+cpmod ${SrcD}/mprOs.c
+cpmod ${SrcD}/mprPool.c
+cpmod ${SrcD}/mprPrintf.c
+cpmod ${SrcD}/mprRomFile.c
+cpmod ${SrcD}/mprSelectWait.c
+cpmod ${SrcD}/mprSocket.c
+cpmod ${SrcD}/mprString.c
+cpmod ${SrcD}/mprTest.c
+cpmod ${SrcD}/mprThread.c
+cpmod ${SrcD}/mprTime.c
+cpmod ${SrcD}/mprUnicode.c
+cpmod ${SrcD}/mprUrl.c
+cpmod ${SrcD}/mprWait.c
+cpmod ${SrcD}/mprXml.c
+cpmod ${SrcD}/files
+
+SrcD=${BLD_TOP}/src/mpr/ssl
+DestD=${SRC_PREFIX}/ssl
+makeDir "${DestD}"
+cpmod ${SrcD}/Makefile
+cpmod ${SrcD}/mprMatrixSsl.c
+cpmod ${SrcD}/mprOpenSsl.c
+cpmod ${SrcD}/mprOpenSslDh.c
+cpmod ${SrcD}/mprSsl.c
+
+SrcD=${BLD_TOP}/src/mpr/regexp
+DestD=${SRC_PREFIX}/regexp
+makeDir "${DestD}"
+cpmod ${SrcD}/LICENSE
+cpmod ${SrcD}/Makefile
+cpmod ${SrcD}/config.h
+cpmod ${SrcD}/pcre_chartables.c
+cpmod ${SrcD}/pcre_compile.c
+cpmod ${SrcD}/pcre_exec.c
+cpmod ${SrcD}/pcre_globals.c
+cpmod ${SrcD}/pcre_internal.h
+cpmod ${SrcD}/pcre_newline.c
+cpmod ${SrcD}/pcre_ord2utf8.c
+cpmod ${SrcD}/pcre_tables.c
+cpmod ${SrcD}/pcre_try_flipped.c
+cpmod ${SrcD}/pcre_ucp_searchfuncs.c
+cpmod ${SrcD}/pcre_valid_utf8.c
+cpmod ${SrcD}/pcre_xclass.c
+cpmod ${SrcD}/ucp.h
+cpmod ${SrcD}/ucpinternal.h
+cpmod ${SrcD}/ucptable.h
+
+SrcD=${BLD_INC_DIR}
+DestD=${BLD_SRC_PREFIX}/src/include
+makeDir "${DestD}"
+cpmod ${SrcD}/mpr.h
+cpmod ${SrcD}/mprOs.h
+cpmod ${SrcD}/mprSsl.h
+cpmod ${SrcD}/mprTest.h
+cpmod ${SrcD}/mprTune.h
+cpmod ${SrcD}/pcre.h
+
+
+if [ $BLD_PRODUCT = mpr ] ; then
+    SrcD=${BLD_TOP}/package/files
+    DestD="${SRC_PREFIX}/package/files"
+else
+    SrcD=${BLD_TOP}/src/mpr/package
+    DestD="${SRC_PREFIX}/package"
+fi
+makeDir "${DestD}"
+cpmod ${SrcD}/mprBin.files
+cpmod ${SrcD}/mprDev.files
+cpmod ${SrcD}/mprSrc.files
+cpmod ${SrcD}/mprTst.files

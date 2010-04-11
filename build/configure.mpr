@@ -1,0 +1,139 @@
+###############################################################################
+#
+#   configure.mpr -- Build configuration script for Michael's Portable Runtime
+#
+#   Copyright (c) Michael O'Brien, 1994-2010. All Rights Reserved.
+#   Copyright (c) Embedthis Software LLC, 2003-2010. All Rights Reserved.
+#
+#   This script is included by configure and is never run stand-alone.
+#
+###############################################################################
+
+applyDependencies()
+{
+    if [ "$CFG_WITHOUT_SSL" = 1 ] ; then
+        without matrixssl
+        without openssl
+    fi
+}
+
+
+manageFeatures()
+{
+    if [ "$BLD_FEATURE_HTTP_CLIENT" = 1 ] ; then
+        BLD_FEATURE_HTTP=1
+    fi
+    if [ "$BLD_FEATURE_ROMFS" = 1 -a "$BLD_CROSS" = 0 ] ; then
+        echo "ROM-based storage is only supported if doing cross-compilation"
+        echo "Disabling --enable-rom"
+        BLD_FEATURE_ROMFS=0
+    fi
+}
+
+
+createFeatureConfig()
+{
+    NAME=$1
+
+    cat >>$NAME <<!EOF_FEATURE_CONFIG2
+#
+#   Extended Feature Selection
+#
+BLD_FEATURE_DECIMAL=$BLD_FEATURE_DECIMAL
+BLD_FEATURE_HTTP=$BLD_FEATURE_HTTP
+BLD_FEATURE_HTTP_CLIENT=$BLD_FEATURE_HTTP_CLIENT
+BLD_FEATURE_XML=$BLD_FEATURE_XML
+!EOF_FEATURE_CONFIG2
+}
+
+
+help()
+{
+    cat <<!EOF_HELP
+
+Additional MPR Features:
+  --enable-cmd             Build with command execution.
+  --enable-http-client     Build http client service.
+  --enable-xml             Build xml parser.
+
+Optional Components: matrixssl, regexp and openssl
+
+  --with-NAME=[DIR]        Add support for the NAME. The build/components/NAME
+                           file will describe compile and linker switches. DIR 
+                           is the base directory to find the module.
+  --without-NAME           Do not include support for NAME.
+
+Examples:
+  ./configure --with-openssl=/usr/src/openssl
+
+!EOF_HELP
+}
+
+
+parseArg()
+{
+    local ARG SW
+
+    ARG="${1#*=}"
+    [ "$ARG" = "$1" ] && ARG=
+
+    SW=`echo ${1#--} | tr '[A-Z]' '[a-z]'`
+    case ${SW} in
+    disable-all)
+        BLD_DISABLE_ALL=1
+        BLD_FEATURE_ASSERT=0
+        BLD_FEATURE_CMD=0
+        BLD_FEATURE_FLOATING_POINT=0
+        BLD_FEATURE_HTTP=0
+        BLD_FEATURE_HTTP_CLIENT=0
+        BLD_FEATURE_LEGACY_API=0
+        BLD_FEATURE_MULTITHREAD=0
+        BLD_FEATURE_SAMPLES=0
+        BLD_FEATURE_TEST=0
+        BLD_FEATURE_XML=0
+        BLD_FEATURE_MATRIXSSL=0
+        BLD_FEATURE_OPENSSL=0
+        BLD_FEATURE_REGEXP=0
+        BLD_FEATURE_SSL=0
+        ;;
+    disable-cmd)
+        BLD_FEATURE_CMD=0
+        ;;
+    disable-http-client)
+        BLD_FEATURE_HTTP=0
+        BLD_FEATURE_HTTP_CLIENT=0
+        ;;
+    disable-xml)
+        BLD_FEATURE_XML=0
+        ;;
+    enable-all)
+        BLD_FEATURE_ASSERT=1
+        BLD_FEATURE_CMD=1
+        BLD_FEATURE_FLOATING_POINT=1
+        BLD_FEATURE_HTTP=1
+        BLD_FEATURE_HTTP_CLIENT=1
+        BLD_FEATURE_MULTITHREAD=0
+        BLD_FEATURE_SAMPLES=1
+        BLD_FEATURE_TEST=1
+        BLD_FEATURE_XML=1
+        BLD_FEATURE_MATRIXSSL=0
+        BLD_FEATURE_OPENSSL=1
+        BLD_FEATURE_REGEXP=1
+        BLD_FEATURE_SSL=1
+        ;;
+    enable-cmd)
+        BLD_FEATURE_CMD=1
+        ;;
+    enable-http-client)
+        BLD_FEATURE_HTTP=1
+        BLD_FEATURE_HTTP_CLIENT=1
+        ;;
+    enable-xml)
+        BLD_FEATURE_XML=1
+        ;;
+    *)  
+        return 1
+        ;;
+    esac
+    return 0
+}

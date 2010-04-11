@@ -1,0 +1,41 @@
+#
+#	mprBin.files - Copy run-time files for the binary use of the MPR.
+#
+#	Copyright (c) Embedthis Software LLC, 2003-2010. All Rights Reserved.
+#
+
+SrcD=${BLD_LIB_DIR}
+DestD=${BLD_LIB_PREFIX}
+makeDir "${DestD}"
+
+if [ "$BLD_FEATURE_STATIC" = 0 ]
+then
+	cpmod ${SrcD}/libmpr${BLD_SHOBJ} "${DestD}" 755
+fi
+
+#
+#   SSL libraries
+#
+SrcD=${BLD_OPENSSL_LIBPATH}
+DestD=${BLD_LIB_PREFIX}
+makeDir "${DestD}"
+
+if [ "$BLD_FEATURE_OPENSSL" = 1 ] ; then
+	if [ $BLD_HOST_OS = WIN ] ; then
+		DestD=${BLD_SBIN_PREFIX}
+		makeDir "${DestD}"
+		cpmod ${SrcD}/libeay32${BLD_SHOBJ} "${DestD}" 755
+		cpmod ${SrcD}/ssleay32${BLD_SHOBJ} "${DestD}" 755
+	else
+		cpmod ${SrcD}/libcrypto${BLD_SHOBJ} "${DestD}" 755
+		cpmod ${SrcD}/libssl${BLD_SHOBJ} "${DestD}" 755
+	fi
+fi
+
+if [ "$BLD_FEATURE_MATRIXSSL" = 1 ] ; then
+	if [ $BLD_HOST_OS = WIN ] ; then
+		DestD=${BLD_SBIN_PREFIX}
+	fi
+	makeDir "${DestD}"
+	cpmod ${SrcD}/libmatrixssl${BLD_SHOBJ} "${DestD}" 755
+fi

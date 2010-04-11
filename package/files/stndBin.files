@@ -1,0 +1,27 @@
+#
+#	stndBin.files - Files needed for the binary installation 
+#
+#	Copyright (c) Embedthis Software LLC, 2003-2010. All Rights Reserved.
+#
+
+if [ $BLD_HOST_OS = WIN ] ; then
+	SrcD=${BLD_TOP}/lib/msvcrt/$BLD_BUILD_CC_CL_VERSION
+	DestD=${BLD_PREFIX}/bin
+	makeDir "${DestD}"
+
+	for kind in HOST BUILD
+	do
+		eval clversion=\$BLD_${kind}_CC_CL_VERSION
+		if [ "$clversion" = 15 ] ; then
+			cpmod ${SrcD}/msvcr90.dll
+			cpmod ${SrcD}/Microsoft.VC90.CRT.manifest
+		fi
+	done
+fi
+
+# SrcD=${BLD_TOP}/doc/product
+# DestD=${BLD_PREFIX}
+# makeDir "${DestD}"
+# cpmod ${SrcD}/${BLD_PRODUCT}.ico
+# cpmod ${SrcD}/${BLD_PRODUCT}.bmp
+

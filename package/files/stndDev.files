@@ -1,0 +1,10 @@
+#
+#	stndDev.files - Files needed for the binary installation 
+#
+#	Copyright (c) Embedthis Software LLC, 2003-2010. All Rights Reserved.
+#
+
+SrcD=${BLD_TOP}
+DestD=${BLD_SRC_PREFIX}
+makeDir "${DestD}"
+cpmod ${SrcD}/build/buildConfig.h
