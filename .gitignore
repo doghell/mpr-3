@@ -29,3 +29,8 @@ bin/x86*
 all/*.h
 .appweb.pid
 bench.save
+*.pdb
+bin/*.exe
+bin/*.def
+bin/*.exp
+build/bin/*.exe
