@@ -939,7 +939,7 @@ char *mprGetNormalizedPath(MprCtx ctx, cchar *pathArg)
     int             addSep, i, segmentCount, hasDot, len, last, sep;
 
     if (pathArg == 0 || *pathArg == '\0') {
-        return mprStrdup(ctx, ".");
+        return mprStrdup(ctx, "");
     }
 
     fs = mprLookupFileSystem(ctx, pathArg);
