@@ -140,5 +140,3 @@ redo:
 	make depend
 	make
 	make test
-
-
