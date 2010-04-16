@@ -211,7 +211,6 @@ static void testNormalize(MprTestGroup *gp)
     char        *path;
 
     ctx = mprAlloc(gp, 1);
-    print("@@@@@\n%s\n", mprGetNormalizedPath(ctx, ""));
     assert(strcmp(mprGetNormalizedPath(ctx, ""), "") == 0);
     assert(strcmp(mprGetNormalizedPath(ctx, "/"), "/") == 0);
     assert(strcmp(mprGetNormalizedPath(ctx, "."), ".") == 0);
