@@ -3841,7 +3841,7 @@ extern int64 mprGetUsedMemory(MprCtx ctx);
  *  @param size of virtual memory to map. This size will be rounded up to the nearest page boundary.
  *  @param mode Mask set to MPR_MAP_READ | MPR_MAP_WRITE
  */
-extern void *mprMapAlloc(uint size, int mode);
+extern void *mprMapAlloc(MprCtx ctx, uint size, int mode);
 
 /**
  *  Free (unpin) a mapped section of virtual memory
@@ -5891,6 +5891,7 @@ extern int mprWriteCmdPipe(MprCmd *cmd, int channel, char *buf, int bufsize);
 typedef struct Mpr {
     MprHeap         heap;                   /**< Top level memory pool */
     MprHeap         pageHeap;               /**< Heap for arenas and slabs. Always page oriented */
+    MprAlloc        alloc;                  /**< Memory allocation statistics */
 
     bool            debugMode;              /**< Run in debug mode (no timers) */
     int             logLevel;               /**< Log trace level */
@@ -5932,6 +5933,7 @@ typedef struct Mpr {
 #endif
 
     struct MprModuleService *moduleService; /**< Module service object */
+    void            *ejsService;            /**< Ejscript service */
 
 #if BLD_FEATURE_MULTITHREAD
     struct MprThreadService *threadService; /**< Thread service object */
@@ -5957,11 +5959,7 @@ typedef struct Mpr {
 } Mpr;
 
 
-#if !BLD_WIN_LIKE || DOXYGEN
-extern Mpr  *_globalMpr;                /* Mpr singleton */
-#define mprGetMpr(ctx) _globalMpr
-#else
-
+#if DOXYGEN || !(LINUX || MACOSX || SOLARIS)
 /**
  *  Return the MPR control instance.
  *  @description Return the MPR singleton control object. 
@@ -5971,6 +5969,10 @@ extern Mpr  *_globalMpr;                /* Mpr singleton */
  *  @ingroup Mpr
  */
 extern struct Mpr *mprGetMpr(MprCtx ctx);
+#else
+
+extern Mpr  *_globalMpr;                /* Mpr singleton */
+#define mprGetMpr(ctx) _globalMpr
 #endif
 
 /**

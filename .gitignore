@@ -34,3 +34,4 @@ bin/*.exe
 bin/*.def
 bin/*.exp
 build/bin/*.exe
+lib/*.so
