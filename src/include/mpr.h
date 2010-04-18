@@ -5963,7 +5963,7 @@ typedef struct Mpr {
 } Mpr;
 
 
-#if BLD_WIN_LIKE || BLD_UNIX_LIKE
+#if BLD_UNIX_LIKE
 #define BLD_HAS_GLOBAL_MPR 1
 #else
 #define BLD_HAS_GLOBAL_MPR 0

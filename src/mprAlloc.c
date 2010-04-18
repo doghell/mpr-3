@@ -72,6 +72,8 @@ static MprBlk *stopAlloc;
  *  Mpr control and root memory context. This is a constant and a permissible global.
  */
 Mpr  *_globalMpr;
+#else BLD_WIN_LIKE
+static Mpr  *_globalMpr;
 #endif
 
 /***************************** Forward Declarations ***************************/
