@@ -336,19 +336,14 @@ static char *sprintfCore(MprCtx ctx, char *buf, int maxsize, cchar *spec, va_lis
     uint64      uValue;
     int         i, len, state;
 
-    if (ctx == 0) {
-        ctx = mprGetMpr(ctx);
-    }
     if (spec == 0) {
         spec = "";
     }
-
     if (buf != 0) {
         mprAssert(maxsize > 0);
         fmt.buf = (uchar*) buf;
         fmt.endbuf = &fmt.buf[maxsize];
         fmt.growBy = -1;
-
     } else {
         if (maxsize <= 0) {
             maxsize = MAXINT;

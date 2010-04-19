@@ -5964,12 +5964,12 @@ typedef struct Mpr {
 
 
 #if BLD_UNIX_LIKE
-#define BLD_HAS_GLOBAL_MPR 1
+#define BLD_HAS_GLOBAL_MPR 0
 #else
 #define BLD_HAS_GLOBAL_MPR 0
 #endif
 
-#if DOXYGEN || !BLD_HAS_GLOBAL_MPR
+#if DOXYGEN || !BLD_HAS_GLOBAL_MPR || BLD_WIN_LIKE
 /**
  *  Return the MPR control instance.
  *  @description Return the MPR singleton control object. 
