@@ -74,6 +74,7 @@ static MprBlk *stopAlloc;
     #if BLD_WIN_LIKE
         Mpr  *_globalMpr;
     #else
+        #undef _globalMpr
         static Mpr  *_globalMpr;
     #endif
 #endif
