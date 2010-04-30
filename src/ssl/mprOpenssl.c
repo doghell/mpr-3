@@ -447,10 +447,8 @@ static void closeOss(MprSocket *sp, bool gracefully)
  */
 static int listenOss(MprSocket *sp, cchar *host, int port, MprSocketAcceptProc acceptFn, void *data, int flags)
 {
-    sp->service->standardProvider->listenSocket(sp, host, port, acceptFn, data, flags);
-    return 0;
+    return sp->service->standardProvider->listenSocket(sp, host, port, acceptFn, data, flags);
 }
-
 
 /*
  *  Initialize a new server-side connection
