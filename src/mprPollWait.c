@@ -108,10 +108,12 @@ int mprWaitForIO(MprWaitService *ws, int timeout)
     /*
      *  No locking. If the masks are updated after this test, the breakout pipe will wake us up soon.
      */
+    mprLock(ws->mutex);
     if (ws->lastMaskGeneration != ws->maskGeneration) {
         getWaitFds(ws);
     }
     if (ws->flags & MPR_NEED_RECALL) {
+        mprUnlock(ws->mutex);
         serviceRecall(ws);
         return 1;
     } else
@@ -120,8 +122,6 @@ int mprWaitForIO(MprWaitService *ws, int timeout)
         timeout = 30000;
     }
 #endif
-
-    mprLock(ws->mutex);
     count = ws->fdsCount;
     if ((fds = mprMemdup(ws, ws->fds, count * sizeof(struct pollfd))) == 0) {
         mprUnlock(ws->mutex);

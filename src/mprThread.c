@@ -85,9 +85,7 @@ MprThread *mprGetCurrentThread(MprCtx ctx)
     int                 i;
 
     ts = mprGetMpr(ctx)->threadService;
-
     mprLock(ts->mutex);
-
     id = mprGetCurrentOsThread();
     for (i = 0; i < ts->threads->length; i++) {
         tp = (MprThread*) mprGetItem(ts->threads, i);
@@ -331,9 +329,7 @@ void mprSetThreadPriority(MprThread *tp, int newPriority)
 #else
     setpriority(PRIO_PROCESS, tp->pid, osPri);
 #endif
-
     tp->priority = newPriority;
-
     mprUnlock(tp->mutex);
 }
 
@@ -537,9 +533,7 @@ MprWorkerService *mprCreateWorkerService(MprCtx ctx)
     if (ws == 0) {
         return 0;
     }
-
     ws->mutex = mprCreateLock(ws);
-    
     ws->minThreads = MPR_DEFAULT_MIN_THREADS;
     ws->maxThreads = MPR_DEFAULT_MAX_THREADS;
 
@@ -551,7 +545,6 @@ MprWorkerService *mprCreateWorkerService(MprCtx ctx)
 
     ws->busyThreads = mprCreateList(ws);
     mprSetListLimits(ws->busyThreads, ws->maxThreads, -1);
-
     return ws;
 }
 
@@ -618,7 +611,6 @@ void mprSetMinWorkers(MprCtx ctx, int n)
     mprLock(ws->mutex);
 
     ws->minThreads = n; 
-    
     while (ws->numThreads < ws->minThreads) {
         worker = createWorker(ws, ws->stackSize);
         ws->numThreads++;
