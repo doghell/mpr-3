@@ -342,9 +342,6 @@ char *mprFormatLocalTime(MprCtx ctx, MprTime time)
 
 
 /*
-    Windows should now support C, e, k, P, s, 
- */
-/*
     Format a time string. This uses strftime if available and so the supported formats vary from platform to platform.
     Strftime should supports some of these these formats:
 
@@ -352,39 +349,31 @@ char *mprFormatLocalTime(MprCtx ctx, MprTime time)
          %a      abbreviated weekday name (Mon)
          %B      full month name (January)
          %b      abbreviated month name (Jan)
-W        %C      century. Year / 100. (0-N)
+         %C      century. Year / 100. (0-N)
          %c      standard date and time representation
          %D      date (%m/%d/%y)
          %d      day-of-month (01-31)
-I        %E*     POSIX locale extensions. The sequences %Ec %EC %Ex %EX %Ey %EY are supposed to provide alternate 
-                 representations. 
-W        %e      day-of-month with a leading space if only one digit ( 1-31)
-I        %G      a year as a decimal number with century. This year is the one that contains the greater part of
-                 the week (Monday as the first day of the week).
-I        %g      the same year as in ``%G'', but as a decimal number without century (00-99).
+         %e      day-of-month with a leading space if only one digit ( 1-31)
+         %F      same as %Y-%m-%d
          %H      hour (24 hour clock) (00-23)
-I        %h      same as %b
+         %h      same as %b
          %I      hour (12 hour clock) (01-12)
          %j      day-of-year (001-366)
-W        %k      hour (24 hour clock) (0-23)
+         %k      hour (24 hour clock) (0-23)
          %l      the hour (12-hour clock) as a decimal number (1-12); single digits are preceded by a blank.
          %M      minute (00-59)
          %m      month (01-12)
          %n      a newline
-I        %O*     POSIX locale extensions. The sequences %Od %Oe %OH %OI %Om %OM %OS %Ou %OU %OV %Ow %OW %Oy are 
-                 supposed to provide alternate representations. Additionly %OB implemented to represent alternative 
-                 months names (used standalone, without day mentioned). NOTE: these are not available on some platforms.
-WM       %P      lower case am / pm
+         %P      lower case am / pm
          %p      AM / PM
+         %R      same as %H:%M
+         %r      same as %H:%M:%S %p
          %S      second (00-59)
-W        %s      seconds since epoch
+         %s      seconds since epoch
          %T      time (%H:%M:%S)
          %t      a tab.
          %U      week-of-year, first day sunday (00-53)
          %u      the weekday (Monday as the first day of the week) as a decimal number (1-7).
-         %V      the week number of the year (Monday as the first day of the week) as a decimal number (01-53). If the week 
-                 containing January 1 has four or more days in the new year, then it is week 1; otherwise it is the last 
-                 week of the previous year, and the next week is week 1.
          %v      is equivalent to ``%e-%b-%Y''.
          %W      week-of-year, first day monday (00-53)
          %w      weekday (0-6, sunday is 0)
@@ -397,9 +386,17 @@ W        %s      seconds since epoch
          %+      national representation of the date and time (the format is similar to that produced by date(1)).
          %%      percent sign
 
-    The !HAS_STRFTIME version does not support: %E, %G, %g, %h, %O
-    Windows only supports the following formats: A, a, B, b, c, d, H, I, j, M, m, p, S, U, W, w, X, x, Y, y, Z.
-        i.e. windows does not support (C, e, k, P, s)
+         Some platforms may also support the following format extensions:
+         %E*     POSIX locale extensions. Where "*" is one of the characters: c, C, x, X, y, Y.
+                 representations. 
+         %G      a year as a decimal number with century. This year is the one that contains the greater part of
+                 the week (Monday as the first day of the week).
+         %g      the same year as in ``%G'', but as a decimal number without century (00-99).
+         %O*     POSIX locale extensions. Where "*" is one of the characters: d, e, H, I, m, M, S, u, U, V, w, W, y.
+                 Additionly %OB implemented to represent alternative months names (used standalone, without day mentioned). 
+         %V      the week number of the year (Monday as the first day of the week) as a decimal number (01-53). If the week 
+                 containing January 1 has four or more days in the new year, then it is week 1; otherwise it is the last 
+                 week of the previous year, and the next week is week 1.
 
     Useful formats:
         RFC822: "%a, %d %b %Y %H:%M:%S %Z           "Fri, 07 Jan 2003 12:12:21 PDT"
@@ -408,7 +405,7 @@ W        %s      seconds since epoch
  */
 
 #if WIN
-    #define VALID_FMT "AaBbCcDdEeFGgHhIjklMmnOPpRrSsTtUuVvWwXxYyZz+%"
+    #define VALID_FMT "AaBbCcDdEeFHhIjklMmnOPpRrSsTtUuvWwXxYyZz+%"
 #elif MACOSX
     #define VALID_FMT "AaBbCcDdEeFGgHhIjklMmnOPpRrSsTtUuVvWwXxYyZz+%"
 #else
@@ -439,7 +436,7 @@ char *mprFormatTime(MprCtx ctx, cchar *fmt, struct tm *tp)
     cchar   *cp, *pat;
     char    tz[80], *sign, *dp, *endp;
     long    timezone;
-    int     size;
+    int     len, size, value;
 
     /*
         Simulate: D, T, z
@@ -449,60 +446,161 @@ char *mprFormatTime(MprCtx ctx, cchar *fmt, struct tm *tp)
     for (cp = fmt, size = sizeof(localFmt) - 1; *cp && dp < &localFmt[sizeof(localFmt) - 32]; size = dp - endp - 1) {
         if (*cp == '%') {
             *dp++ = *cp++;
-            if (*cp == '+') {
+again:
+            switch (*cp) {
+            case '+':
                 pat = "a %b %d %H:%M:%S %Z %Y";
                 strcpy(dp, pat);
                 dp += strlen(pat);
                 cp++;
+                break;
 
-            } else if (*cp == 'C') {
-                mprItoa(dp, size, (int64) (1900 + tp->tm_year) / 1000, 10);
+            case 'C':
+				dp--;
+                mprItoa(dp, size, (int64) (1900 + tp->tm_year) / 100, 10);
                 dp += strlen(dp);
                 cp++;
+                break;
 
-            } else if (*cp == 'D') {
+            case 'D':
                 strcpy(dp, "m/%d/%y");
                 dp += 7;
                 cp++;
+                break;
 
-            } else if (*cp == 'e') {
-                if (tp->tm_mon < 10) {
+            case 'e':                       /* day of month (1-31). Single digits preceeded by blanks */
+				dp--;
+                if (tp->tm_mday < 10) {
                     *dp++ = ' ';
                 }
-                mprItoa(dp, size - 1, (int64) tp->tm_mon);
+                mprItoa(dp, size - 1, (int64) tp->tm_mday, 10);
                 dp += strlen(dp);
                 cp++;
+                break;
 
-            } else if (*cp == 'k') {
+            case 'E':
+                /* Skip the 'E' */
+                cp++;
+                goto again;
+            
+            case 'F':
+                strcpy(dp, "Y-%m-%d");
+                dp += 7;
+                cp++;
+                break;
+
+			case 'h':
+				*dp++ = 'b';
+				cp++;
+				break;
+
+            case 'k':
+				dp--;
                 if (tp->tm_hour < 10) {
                     *dp++ = ' ';
                 }
-                mprItoa(dp, size - 1, (int64) tp->tm_hour);
+                mprItoa(dp, size - 1, (int64) tp->tm_hour, 10);
                 dp += strlen(dp);
                 cp++;
+                break;
 
-            } else if (*cp == 'P') {
+            case 'l':
+				dp--;
+                value = tp->tm_hour;
+                if (value < 10) {
+                    *dp++ = ' ';
+                }
+                if (value > 12) {
+                    value -= 12;
+                }
+                mprItoa(dp, size - 1, (int64) value, 10);
+                dp += strlen(dp);
+                cp++;
+                break;
+
+            case 'n':
+                dp[-1] = '\n';
+                cp++;
+                break;
+
+            case 'O':
+                /* Skip the 'O' */
+                cp++;
+                goto again;
+            
+            case 'P':
+				dp--;
                 strcpy(dp, (tp->tm_hour > 11) ? "pm" : "am");
                 dp += 2;
                 cp++;
+                break;
 
-            } else if (*cp == 's') {
-                mprItoa(dp, size, (int64) mprMakeTime(ctx, tp));
+            case 'R':
+                strcpy(dp, "H:%M");
+                dp += 4;
+                cp++;
+                break;
+
+            case 'r':
+                strcpy(dp, "I:%M:%S %p");
+                dp += 10;
+                cp++;
+                break;
+
+            case 's':
+				dp--;
+                mprItoa(dp, size, (int64) mprMakeTime(ctx, tp) / 1000, 10);
                 dp += strlen(dp);
                 cp++;
+                break;
 
-            } else if (*cp == 'T') {
+            case 'T':
                 strcpy(dp, "H:%M:%S");
                 dp += 7;
                 cp++;
+                break;
 
-            } else if (*cp == 'z') {
+            case 't':
+                dp[-1] = '\t';
+                cp++;
+                break;
+
+			case 'u':
+				dp--;
+				value = tp->tm_wday;
+				if (value == 0) {
+					value = 7;
+				}
+                mprItoa(dp, size, (int64) value, 10);
+                dp += strlen(dp);
+                cp++;
+				break;
+
+            case 'v':
+                /* Inline '%e' */
+				dp--;
+                if (tp->tm_mday < 10) {
+                    *dp++ = ' ';
+                }
+                mprItoa(dp, size - 1, (int64) tp->tm_mday, 10);
+                dp += strlen(dp);
+                cp++;
+                strcpy(dp, "-%b-%Y");
+                dp += 6;
+                break;
+
+            case 'z':
                 _get_timezone(&timezone);
                 sign = (timezone >= 0) ? "-": "";
                 if (timezone < 0) {
                     timezone = -timezone;
                 }
                 timezone /= 60;
+                if (tp->tm_isdst == 1) {
+                    TIME_ZONE_INFORMATION  tinfo;
+                    GetTimeZoneInformation(&tinfo);
+                    timezone += (tinfo.DaylightBias);
+                }
                 mprSprintf(tz, sizeof(tz), "%s%02d%02d", sign, timezone / 60, timezone % 60);
                 len = strlen(tz);
                 if (&dp[len] >= &localFmt[sizeof(localFmt) - 9]) {
@@ -511,9 +609,16 @@ char *mprFormatTime(MprCtx ctx, cchar *fmt, struct tm *tp)
                 mprStrcpy(--dp, len + 1, tz);
                 dp += len;
                 cp++;
+                break;
 
-            } else if (strchr("AaBbCcDdEeFGgHhIjklMmnOPpRrSsTtUuVvWwXxYyZz+%", (int) *cp) != 0) {
-                *dp++ = *cp++;
+            default: 
+                if (strchr(VALID_FMT, (int) *cp) != 0) {
+                    *dp++ = *cp++;
+				} else {
+					dp--;
+					cp++;
+				}
+                break;
             }
         } else {
             *dp++ = *cp++;
@@ -530,6 +635,9 @@ char *mprFormatTime(MprCtx ctx, cchar *fmt, struct tm *tp)
          fmt = "%e-%b-%Y";
     }
 #endif
+	if (*fmt == '\0') {
+		fmt = "%a %b %d %H:%M:%S %Z %Y";
+	}
     if (strftime(buf, sizeof(buf) - 1, fmt, tp) > 0) {
         buf[sizeof(buf) - 1] = '\0';
         return mprStrdup(ctx, buf);
@@ -542,15 +650,24 @@ char *mprFormatTime(MprCtx ctx, cchar *fmt, struct tm *tp)
 /*
     This implementation is used only on platforms that don't support strftime. This version is not localized.
  */
-static void digits(MprBuf *buf, int count, int value)
+static void digits(MprBuf *buf, int count, int fill, int value)
 {
-    char    tmp[16]; 
-    int     i; 
+    char    tmp[32]; 
+    int     i, j; 
 
-    for (i = 0; count-- > 0; i++) { 
+    if (value < 0) {
+        mprPutCharToBuf(buf, '-');
+        value = -value;
+    }
+    for (i = 0; value && i < count; i++) { 
         tmp[i] = '0' + value % 10; 
         value /= 10; 
     } 
+    if (fill) {
+        for (j = i; j < count; j++) {
+            mprPutCharToBuf(buf, fill);
+        }
+    }
     while (i-- > 0) {
         mprPutCharToBuf(buf, tmp[i]); 
     } 
@@ -567,7 +684,32 @@ static char *getTimeZoneName(MprCtx ctx, struct tm *tp)
     return mprToAsc(ctx, wzone);
 #else
     tzset();
-    return mprStrdup(ctx, tzname);
+    return mprStrdup(ctx, tp->tm_zone);
+#endif
+}
+
+
+static int getTimeZone(MprCtx ctx, struct tm *tp)
+{
+#if WIN
+    long    timezone;
+    _get_timezone(&timezone);
+    sign = (timezone >= 0) ? "-": "";
+    if (timezone < 0) {
+        timezone = -timezone;
+    }
+    timezone /= 60;
+    if (tp->tm_isdst == 1) {
+        TIME_ZONE_INFORMATION  tinfo;
+        GetTimeZoneInformation(&tinfo);
+        timezone += (tinfo.DaylightBias);
+    }
+    return timezone;
+#elif LINUX || MACOSX
+    return tp->tm_gmtoff / 60;
+#else
+    mprAssert(0);
+    return 0;
 #endif
 }
 
@@ -577,7 +719,7 @@ char *mprFormatTime(MprCtx ctx, cchar *fmt, struct tm *tp)
     struct tm       tm;
     MprBuf          *buf;
     char            *result, *zone;
-    int             w;
+    int             w, value;
 
     if (fmt == 0) {
         fmt = MPR_DEFAULT_DATE;
@@ -594,6 +736,7 @@ char *mprFormatTime(MprCtx ctx, cchar *fmt, struct tm *tp)
             mprPutCharToBuf(buf, fmt[-1]);
             continue;
         }
+    again:
         switch (*fmt++) {
         case '%' :                                      /* percent */
             mprPutCharToBuf(buf, '%');
@@ -604,35 +747,39 @@ char *mprFormatTime(MprCtx ctx, cchar *fmt, struct tm *tp)
             mprPutCharToBuf(buf, ' ');
             mprPutStringToBuf(buf, abbrevMonth[tp->tm_mon]);
             mprPutCharToBuf(buf, ' ');
-            digits(buf, 2, tp->tm_mday);
+            digits(buf, 2, ' ', tp->tm_mday);
             mprPutCharToBuf(buf, ' ');
-            digits(buf, 2, tp->tm_hour);
+            digits(buf, 2, '0', tp->tm_hour);
             mprPutCharToBuf(buf, ':');
-            digits(buf, 2, tp->tm_min);
+            digits(buf, 2, '0', tp->tm_min);
             mprPutCharToBuf(buf, ':');
-            digits(buf, 2, tp->tm_sec);
+            digits(buf, 2, '0', tp->tm_sec);
             mprPutCharToBuf(buf, ' ');
             zone = getTimeZoneName(ctx, tp);
             mprPutStringToBuf(buf, zone);
             mprPutCharToBuf(buf, ' ');
-            digits(buf, 4, tp->tm_year + 1900);
+            digits(buf, 4, 0, tp->tm_year + 1900);
             mprFree(zone);
-            break;
-
-        case 'a' :                                      /* abbreviated weekday (Sun) */
-            mprPutStringToBuf(buf, abbrevDay[tp->tm_wday]);
             break;
 
         case 'A' :                                      /* full weekday (Sunday) */
             mprPutStringToBuf(buf, day[tp->tm_wday]);
             break;
 
-        case 'b' :                                      /* abbreviated month (Jan) */
-            mprPutStringToBuf(buf, abbrevMonth[tp->tm_mon]);
+        case 'a' :                                      /* abbreviated weekday (Sun) */
+            mprPutStringToBuf(buf, abbrevDay[tp->tm_wday]);
             break;
 
         case 'B' :                                      /* full month (January) */
             mprPutStringToBuf(buf, month[tp->tm_mon]);
+            break;
+
+        case 'b' :                                      /* abbreviated month (Jan) */
+            mprPutStringToBuf(buf, abbrevMonth[tp->tm_mon]);
+            break;
+
+        case 'C' :                                      /* century number (19, 20) */
+            digits(buf, 2, '0', (1900 + tp->tm_year) / 100);
             break;
 
         case 'c' :                                      /* preferred date+time in current locale */
@@ -640,117 +787,211 @@ char *mprFormatTime(MprCtx ctx, cchar *fmt, struct tm *tp)
             mprPutCharToBuf(buf, ' ');
             mprPutStringToBuf(buf, abbrevMonth[tp->tm_mon]);
             mprPutCharToBuf(buf, ' ');
-            digits(buf, 2, tp->tm_mday);
+            digits(buf, 2, ' ', tp->tm_mday);
             mprPutCharToBuf(buf, ' ');
-            digits(buf, 2, tp->tm_hour);
+            digits(buf, 2, '0', tp->tm_hour);
             mprPutCharToBuf(buf, ':');
-            digits(buf, 2, tp->tm_min);
+            digits(buf, 2, '0', tp->tm_min);
             mprPutCharToBuf(buf, ':');
-            digits(buf, 2, tp->tm_sec);
+            digits(buf, 2, '0', tp->tm_sec);
             mprPutCharToBuf(buf, ' ');
-            digits(buf, 2, tp->tm_year + 1900);
-            break;
-
-        case 'C' :                                      /* century number (19, 20) */
-            digits(buf, 2, (1900 + tp->tm_year) / 1000);
-
-        case 'd' :                                      /* day of month (01-31) */
-            digits(buf, 2, tp->tm_mday);
+            digits(buf, 4, 0, tp->tm_year + 1900);
             break;
 
         case 'D' :                                      /* mm/dd/yy */
-            digits(buf, 2, tp->tm_mon + 1);
+            digits(buf, 2, '0', tp->tm_mon + 1);
             mprPutCharToBuf(buf, '/');
-            digits(buf, 2, tp->tm_mday);
+            digits(buf, 2, '0', tp->tm_mday);
             mprPutCharToBuf(buf, '/');
-            digits(buf, 2, tp->tm_year + 1900);
-
-        case 'H' :                                      /* hour using 24 hour clock (00-23) */
-            digits(buf, 2, tp->tm_hour);
+            digits(buf, 2, '0', tp->tm_year - 100);
             break;
 
-        case 'I' :                                      /* hour using 12 hour clock (00-01) */
-            digits(buf, 2, (tp->tm_hour % 12) ? tp->tm_hour % 12 : 12);
+        case 'd' :                                      /* day of month (01-31) */
+            digits(buf, 2, '0', tp->tm_mday);
             break;
 
-        case 'j' :                                      /* julian day (001-366) */
-            digits(buf, 3, tp->tm_yday+1);
+        case 'E':
+            /* Skip the 'E' */
+            goto again;
+
+        case 'e':                                       /* day of month (1-31). Single digits preceeded by a blank */
+            digits(buf, 2, ' ', tp->tm_mday);
             break;
 
-        case 'm' :                                      /* month as a number (01-12) */
-            digits(buf, 2, tp->tm_mon+1);
+        case 'F':                                       /* %m/%d/%y */
+            digits(buf, 4, 0, tp->tm_year + 1900);
+            mprPutCharToBuf(buf, '-');
+            digits(buf, 2, '0', tp->tm_mon + 1);
+            mprPutCharToBuf(buf, '-');
+            digits(buf, 2, '0', tp->tm_mday);
             break;
 
-        case 'M' :                                      /* minute as a number (00-59) */
-            digits(buf, 2, tp->tm_min);
+        case 'H':                                       /* hour using 24 hour clock (00-23) */
+            digits(buf, 2, '0', tp->tm_hour);
             break;
 
-        case 'p' :                                      /* AM/PM */
+        case 'h':                                       /* Same as %b */
+            mprPutStringToBuf(buf, abbrevMonth[tp->tm_mon]);
+            break;
+
+        case 'I':                                       /* hour using 12 hour clock (00-01) */
+            digits(buf, 2, '0', (tp->tm_hour % 12) ? tp->tm_hour % 12 : 12);
+            break;
+
+        case 'j':                                       /* julian day (001-366) */
+            digits(buf, 3, '0', tp->tm_yday+1);
+            break;
+
+        case 'k':                                       /* hour (0-23). Single digits preceeded by a blank */
+            digits(buf, 2, ' ', tp->tm_hour);
+            break;
+
+        case 'l':                                       /* hour (1-12). Single digits preceeded by a blank */
+            digits(buf, 2, ' ', tp->tm_hour < 12 ? tp->tm_hour : (tp->tm_hour - 12));
+            break;
+
+        case 'M':                                       /* minute as a number (00-59) */
+            digits(buf, 2, '0', tp->tm_min);
+            break;
+
+        case 'm':                                       /* month as a number (01-12) */
+            digits(buf, 2, '0', tp->tm_mon + 1);
+            break;
+
+        case 'n':                                       /* newline */
+            mprPutCharToBuf(buf, '\n');
+            break;
+
+        case 'O':
+            /* Skip the 'O' */
+            goto again;
+
+        case 'p':                                       /* AM/PM */
             mprPutStringToBuf(buf, (tp->tm_hour > 11) ? "PM" : "AM");
             break;
 
-        case 'P' :                                      /* am/pm */
+        case 'P':                                       /* am/pm */
             mprPutStringToBuf(buf, (tp->tm_hour > 11) ? "pm" : "am");
             break;
 
-        case 's' :                                      /* seconds since epoch */
-            mprPutFmtToBuf(buf, "%d", mprMakeTime(ctx, tp));
+        case 'R':
+            digits(buf, 2, '0', tp->tm_hour);
+            mprPutCharToBuf(buf, ':');
+            digits(buf, 2, '0', tp->tm_min);
             break;
 
-        case 'S' :                                      /* seconds as a number (00-60) */
-            digits(buf, 10, tp->tm_sec);
+        case 'r':
+            digits(buf, 2, '0', (tp->tm_hour % 12) ? tp->tm_hour % 12 : 12);
+            mprPutCharToBuf(buf, ':');
+            digits(buf, 2, '0', tp->tm_min);
+            mprPutCharToBuf(buf, ':');
+            digits(buf, 2, '0', tp->tm_sec);
+            mprPutCharToBuf(buf, ' ');
+            mprPutStringToBuf(buf, (tp->tm_hour > 11) ? "PM" : "AM");
             break;
 
-        case 'U' :                                      /* week number (00-53. Staring with first Sunday */
+        case 'S':                                       /* seconds as a number (00-60) */
+            digits(buf, 2, '0', tp->tm_sec);
+            break;
+
+        case 's':                                       /* seconds since epoch */
+            mprPutFmtToBuf(buf, "%d", mprMakeTime(ctx, tp) / 1000);
+            break;
+
+        case 'T':
+            digits(buf, 2, '0', tp->tm_hour);
+            mprPutCharToBuf(buf, ':');
+            digits(buf, 2, '0', tp->tm_min);
+            mprPutCharToBuf(buf, ':');
+            digits(buf, 2, '0', tp->tm_sec);
+            break;
+
+        case 't':                                       /* Tab */
+            mprPutCharToBuf(buf, '\t');
+            break;
+
+        case 'U':                                       /* week number (00-53. Staring with first Sunday */
             w = tp->tm_yday / 7;
             if (tp->tm_yday % 7 > tp->tm_wday) {
                 w++;
             }
-            digits(buf, 2, w);
+            digits(buf, 2, '0', w);
             break;
 
-        case 'w' :                                      /* day of week (0-6) */
-            digits(buf, 1, tp->tm_wday);
+        case 'u':                                       /* Week day (1-7) */
+            value = tp->tm_wday;
+            if (value == 0) {
+                value = 7;
+            }
+            digits(buf, 1, 0, tp->tm_wday == 0 ? 7 : tp->tm_wday);
             break;
 
-        case 'W' :                                      /* week number (00-53). Staring with first Monday */
+        case 'v':                                       /* %e-%b-%Y */
+            digits(buf, 2, ' ', tp->tm_mday);
+            mprPutCharToBuf(buf, '-');
+            mprPutStringToBuf(buf, abbrevMonth[tp->tm_mon]);
+            mprPutCharToBuf(buf, '-');
+            digits(buf, 4, '0', tp->tm_year + 1900);
+            break;
+
+        case 'W':                                       /* week number (00-53). Staring with first Monday */
             w = (tp->tm_yday + 7 - (tp->tm_wday ?  (tp->tm_wday - 1) : (7 - 1))) / 7;
-            digits(buf, 2, w);
+            digits(buf, 2, '0', w);
             break;
 
-        case 'x' :                                      /* preferred date without time */
-            digits(buf, 2, tp->tm_mon + 1);
-            mprPutCharToBuf(buf, '/');
-            digits(buf, 2, tp->tm_mday);
-            mprPutCharToBuf(buf, '/');
-            digits(buf, 2, tp->tm_year + 1900);
+        case 'w':                                       /* day of week (0-6) */
+            digits(buf, 1, '0', tp->tm_wday);
             break;
 
-        case 'X' :                                      /* preferred time without date */
-            digits(buf, 2, tp->tm_hour);
+        case 'X':                                       /* preferred time without date */
+            digits(buf, 2, '0', tp->tm_hour);
             mprPutCharToBuf(buf, ':');
-            digits(buf, 2, tp->tm_min);
+            digits(buf, 2, '0', tp->tm_min);
             mprPutCharToBuf(buf, ':');
-            digits(buf, 2, tp->tm_sec);
+            digits(buf, 2, '0', tp->tm_sec);
             break;
 
-        case 'y' :                                      /* year without century (00-99) */
-            digits(buf, 2, tp->tm_year % 100);
+        case 'x':                                      /* preferred date without time */
+            digits(buf, 2, '0', tp->tm_mon + 1);
+            mprPutCharToBuf(buf, '/');
+            digits(buf, 2, '0', tp->tm_mday);
+            mprPutCharToBuf(buf, '/');
+            digits(buf, 2, '0', tp->tm_year + 1900);
             break;
 
-        case 'Y' :                                      /* year as a decimal including century (1900) */
-            digits(buf, 4, tp->tm_year + 1900);
+        case 'Y':                                       /* year as a decimal including century (1900) */
+            digits(buf, 4, '0', tp->tm_year + 1900);
             break;
 
-        case 'Z' :                                      /* Timze zone */
+        case 'y':                                       /* year without century (00-99) */
+            digits(buf, 2, '0', tp->tm_year % 100);
+            break;
+
+        case 'Z':                                       /* Timezone */
             zone = getTimeZoneName(ctx, tp);
             mprPutStringToBuf(buf, zone);
             mprFree(zone);
             break;
 
+        case 'z':
+            value = getTimeZone(ctx, tp);
+            if (value < 0) {
+                mprPutCharToBuf(buf, '-');
+                value = -value;
+            }
+            digits(buf, 2, '0', value / 60);
+            digits(buf, 2, '0', value % 60);
+            break;
+
+        case 'g':
+        case 'G':
+        case 'V':
+            break;
+
         default:
             mprPutCharToBuf(buf, '%');
             mprPutCharToBuf(buf, fmt[-1]);
+            break;
         }
     }
     mprAddNullToBuf(buf);
