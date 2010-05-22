@@ -37,3 +37,4 @@ build/bin/*.exe
 lib/*.so
 *.so
 lib/*.so.*
+*/i386-wrs-vxworks
