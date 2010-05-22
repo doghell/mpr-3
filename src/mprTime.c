@@ -10,10 +10,17 @@
 
 /********************************** Defines ***********************************/
 
-#if WINCE
-    #define HAS_STRFTIME 0
+#define MS_PER_SEC  (MPR_TICKS_PER_SEC)
+#define MS_PER_HOUR (60 * 60 * MPR_TICKS_PER_SEC)
+#define MS_PER_MIN  (60 * MPR_TICKS_PER_SEC)
+#define MS_PER_DAY  (86400 * MPR_TICKS_PER_SEC)
+#define MS_PER_YEAR (INT64(31556952000))
+
+#define MAX_TIME    (((time_t) -1) & ~(((time_t) 1) << ((sizeof(time_t) * 8) - 1)))
+#if BLD_UNIX_LIKE
+#define MIN_TIME    (((time_t) -1) & ~(((time_t) 1) << ((sizeof(time_t) * 8) - 1)))
 #else
-    #define HAS_STRFTIME 1
+#define MIN_TIME    0
 #endif
 
 /*
@@ -120,6 +127,23 @@ static TimeToken offsets[] = {
 
 static int timeSep = ':';
 
+/*
+    Formats for mprFormatTime
+ */
+#if WIN
+    #define VALID_FMT "AaBbCcDdEeFHhIjklMmnOPpRrSsTtUuvWwXxYyZz+%"
+#elif MACOSX
+    #define VALID_FMT "AaBbCcDdEeFGgHhIjklMmnOPpRrSsTtUuVvWwXxYyZz+%"
+#else
+    #define VALID_FMT "AaBbCcDdEeFGgHhIjklMmnOPpRrSsTtUuVvWwXxYyZz+%"
+#endif
+
+#if WINCE
+    #define HAS_STRFTIME 0
+#else
+    #define HAS_STRFTIME 1
+#endif
+
 #if !HAS_STRFTIME
 static char *abbrevDay[] = {
     "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"
@@ -139,23 +163,27 @@ static char *month[] = {
     "January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December"
 };
+#endif /* !HAS_STRFTIME */
 
-static char *getTimeZoneName(MprCtx ctx, struct tm *tp);
-#endif
 
+static int normalMonthStart[] = {
+    0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 0,
+};
+static int leapMonthStart[] = {
+    0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 0
+};
+
+
+static MprTime daysSinceEpoch(int year);
+static void decodeTime(MprCtx ctx, struct tm *tp, MprTime when, bool local);
+static int getTimeZoneOffsetFromTm(MprCtx ctx, struct tm *tp);
+static int leapYear(int year);
+static MprTime makeTime(MprCtx ctx, struct tm *tp);
+static void validateTime(MprCtx ctx, struct tm *tm, struct tm *defaults);
 
 #if BLD_WIN_LIKE || VXWORKS
 static int gettimeofday(struct timeval *tv, struct timezone *tz);
 #endif
-
-#if BLD_UNIX_LIKE
-#undef localtime
-#undef localtime_r
-#undef gmtime
-#undef gmtime_r
-#endif
-
-static void validateTime(MprCtx ctx, struct tm *tm, struct tm *defaults);
 
 /************************************ Code ************************************/
 /*
@@ -165,8 +193,6 @@ int mprCreateTimeService(MprCtx ctx)
 {
     Mpr                 *mpr;
     TimeToken           *tt;
-    struct timezone     tz;
-    struct timeval      tv;
 
     mpr = mprGetMpr(ctx);
     mpr->timeTokens = mprCreateHash(mpr, -1);
@@ -193,10 +219,38 @@ int mprCreateTimeService(MprCtx ctx)
     for (tt = offsets; tt->name; tt++) {
         mprAddHash(mpr->timeTokens, tt->name, (void*) tt);
     }
-
-    gettimeofday(&tv, &tz);
-    mpr->timezone = -tz.tz_minuteswest;
     return 0;
+}
+
+
+int mprCompareTime(MprTime t1, MprTime t2)
+{
+    if (t1 < t2) {
+        return -1;
+    } else if (t1 == t2) {
+        return 0;
+    }
+    return 1;
+}
+
+
+void mprDecodeLocalTime(MprCtx ctx, struct tm *tp, MprTime when)
+{
+    decodeTime(ctx, tp, when, 1);
+}
+
+
+void mprDecodeUniversalTime(MprCtx ctx, struct tm *tp, MprTime when)
+{
+    decodeTime(ctx, tp, when, 0);
+}
+
+
+char *mprFormatLocalTime(MprCtx ctx, MprTime time)
+{
+    struct tm   tm;
+    mprDecodeLocalTime(ctx, &tm, time);
+    return mprFormatTime(ctx, MPR_DEFAULT_DATE, &tm);
 }
 
 
@@ -238,7 +292,7 @@ MprTime mprGetRemainingTime(MprCtx ctx, MprTime mark, uint timeout)
 
 
 /*
-    Return the elapsed time since a time marker
+    Get the elapsed time since a time marker
  */
 MprTime mprGetElapsedTime(MprCtx ctx, MprTime mark)
 {
@@ -246,171 +300,311 @@ MprTime mprGetElapsedTime(MprCtx ctx, MprTime mark)
 }
 
 
-int mprCompareTime(MprTime t1, MprTime t2)
+/*
+    Get the timezone offset including DST
+ */
+int mprGetTimeZoneOffset(MprCtx ctx, MprTime when)
 {
-    if (t1 < t2) {
-        return -1;
-    } else if (t1 == t2) {
+    struct tm   t;
+
+    decodeTime(ctx, &t, when, 1);
+    return getTimeZoneOffsetFromTm(ctx, &t);
+}
+
+
+/*
+    Make a time value interpreting "tm" as a local time
+ */
+MprTime mprMakeTime(MprCtx ctx, struct tm *tm)
+{
+    MprTime     when;
+
+    when = makeTime(ctx, tm);
+    when -= mprGetTimeZoneOffset(ctx, when);
+    return when;
+}
+
+
+MprTime mprMakeUniversalTime(MprCtx ctx, struct tm *tp)
+{
+    return makeTime(ctx, tp);
+}
+
+
+/*************************************** O/S Layer ***********************************/
+
+static int localTime(MprCtx ctx, struct tm *timep, MprTime time)
+{
+#if BLD_UNIX_LIKE || WINCE
+    time_t when = (time_t) (time / MS_PER_SEC);
+    return localtime_r(&when, timep) != 0;
+#else
+    struct tm   *tp;
+    //  MOB -- thread safe?
+    time_t when = (time_t) (time / MS_PER_SEC);
+    if ((tp = localtime(&when)) == 0) {
+        return MPR_ERR;
+    }
+    *timep = *tp;
+    return 0;
+#endif
+}
+
+struct tm *universalTime(MprCtx ctx, struct tm *timep, MprTime time)
+{
+#if BLD_UNIX_LIKE || WINCE
+    time_t when = (time_t) (time / MS_PER_SEC);
+    return gmtime_r(&when, timep);
+#else
+    struct tm   *tp;
+    time_t      when;
+    when = (time_t) (time / MS_PER_SEC);
+    if ((tp = gmtime(&when)) == 0) {
+        return 0;
+    }
+    *timep = *tp;
+    return timep;
+#endif
+}
+
+
+/*
+    Return the timezone offset (including DST) in msec. local == (UTC + offset)
+    Assumes a valid "tm" with isdst correctly set.
+ */
+static int getTimeZoneOffsetFromTm(MprCtx ctx, struct tm *tp)
+{
+#if BLD_WIN_LIKE
+    int                     offset;
+    TIME_ZONE_INFORMATION   tinfo;
+    GetTimeZoneInformation(&tinfo);
+    offset = tinfo.Bias;
+    if (tp->tm_isdst == 1) {
+        offset += tinfo.DaylightBias;
+    } else {
+        offset += tinfo.StandardBias;
+    }
+    return -offset * 60 * MS_PER_SEC;
+#else
+    return tp->tm_gmtoff * MS_PER_SEC;
+#endif
+}
+
+/********************************* Calculations *********************************/
+/*
+    Convert "struct tm" to MprTime
+ */
+static MprTime makeTime(MprCtx ctx, struct tm *tp)
+{
+    MprTime     days;
+    int         year, month;
+
+    year = tp->tm_year + 1900 + tp->tm_mon / 12; 
+    month = tp->tm_mon % 12;
+    if (month < 0) {
+        month += 12;
+        --year;
+    }
+    days = daysSinceEpoch(year);
+    days += leapYear(year) ? leapMonthStart[month] : normalMonthStart[month];
+    days += tp->tm_mday - 1;
+    return (days * MS_PER_DAY) + ((((((tp->tm_hour * 60)) + tp->tm_min) * 60) + tp->tm_sec) * MS_PER_SEC);
+}
+
+
+static MprTime daysSinceEpoch(int year)
+{
+    int     days;
+
+    days = ((MprTime) 365) * (year - 1970);
+    days += ((year-1) / 4) - (1970 / 4);
+    days -= ((year-1) / 100) - (1970 / 100);
+    days += ((year-1) / 400) - (1970 / 400);
+    return days;
+}
+
+
+static int leapYear(int year)
+{
+    if (year % 4) {
+        return 0;
+    } else if (year % 400 == 0) {
+        return 1;
+    } else if (year % 100 == 0) {
         return 0;
     }
     return 1;
 }
 
 
+static int getMonth(int year, int day)
+{
+    int     *days, i;
+
+    days = leapYear(year) ? leapMonthStart : normalMonthStart;
+    for (i = 1; days[i]; i++) {
+        if (day < days[i]) {
+            return i - 1;
+        }
+    }
+    return 11;
+}
+
+
+static int getYear(MprTime when)
+{
+    MprTime     ms;
+    int         year;
+
+    year = 1970 + (int) (when / MS_PER_YEAR);
+    ms = daysSinceEpoch(year) * MS_PER_DAY;
+    if (ms > when) {
+        return year - 1;
+    } else if (ms + (((MprTime) MS_PER_DAY) * (365 + leapYear(year))) <= when) {
+        return year + 1;
+    }
+    return year;
+}
+
+
 /*
-    Make a time value interpreted using the local time value
+    Decode an MprTime into components in a "struct tm" 
  */
-MprTime mprMakeTime(MprCtx ctx, struct tm *tm)
+static void decodeTime(MprCtx ctx, struct tm *tp, MprTime when, bool local)
 {
-    MprTime     rc;
-    
-    tm->tm_isdst = -1;
-    rc = mktime(tm);
-    if (rc == -1) {
-        return rc;
-    }
-    return rc * MPR_TICKS_PER_SEC;
-}
+    MprTime     alternate;
+    struct tm   t;
+    char        *zoneName;
+    int         year, offset, dst;
 
+    zoneName = 0;
+    offset = dst = 0;
 
-/*
-    Make a time value interpreted using UTC
- */
-MprTime mprMakeUniversalTime(MprCtx ctx, struct tm *tm)
-{
-    MprTime     rc;
-    
-#if WIN
-    rc = _mkgmtime(tm);
-#elif VXWORKS
-{
-    struct timezone tz;
-    struct timeval  tv;
-
-    rc = mktime(tm);
-    if (rc == -1) {
-        return rc;
-    }
-    gettimeofday(&tv, &tz);
-    rc -= (tz.tz_minuteswest * 60);
-}
-#else
-    rc = timegm(tm);
+    if (local) {
+        //  MOB -- cache the results somehow
+        alternate = when;
+        if (when < MIN_TIME || when > MAX_TIME) {
+            /*
+                Can't use localTime on this date. Map to an alternate date with a valid year.
+             */
+            decodeTime(ctx, &t, when, 0);
+            t.tm_year = 110;
+            alternate = makeTime(ctx, &t);
+        }
+        t.tm_isdst = -1;
+        localTime(ctx, &t, alternate);
+        offset = getTimeZoneOffsetFromTm(ctx, &t);
+        dst = t.tm_isdst;
+#if BLD_UNIX_LIKE
+        zoneName = (char*) t.tm_zone;
 #endif
-    if (rc < 0) {
-        return rc;
+        when += offset;
     }
-    return rc * MPR_TICKS_PER_SEC;
-}
+    year = getYear(when);
 
-
-struct tm *mprDecodeLocalTime(MprCtx ctx, struct tm *timep, MprTime time)
-{
-    time_t      when;
-
-    when = (time_t) (time / MPR_TICKS_PER_SEC);
-#if BLD_UNIX_LIKE || WINCE
-    localtime_r(&when, timep);
-    return timep;
-#else
-    *timep = *localtime(&when);
+    tp->tm_year     = year - 1900;
+    tp->tm_hour     = (when / MS_PER_HOUR) % 24;
+    tp->tm_min      = (when / MS_PER_MIN) % 60;
+    tp->tm_sec      = (when / MS_PER_SEC) % 60;
+    tp->tm_wday     = ((when / MS_PER_DAY) + 4) % 7;
+    tp->tm_yday     = (int) ((when / MS_PER_DAY) - daysSinceEpoch(year));
+    tp->tm_mon      = getMonth(year, tp->tm_yday);
+    if (leapYear(year)) {
+        tp->tm_mday = tp->tm_yday - leapMonthStart[tp->tm_mon] + 1;
+    } else {
+        tp->tm_mday = tp->tm_yday - normalMonthStart[tp->tm_mon] + 1;
+    }
+    tp->tm_isdst    = dst != 0;
+#if BLD_UNIX_LIKE
+    tp->tm_gmtoff   = offset / MS_PER_SEC;
+    tp->tm_zone     = zoneName;
 #endif
-    return timep;
+
+    if (tp->tm_hour < 0) {
+        tp->tm_hour += 24;
+    }
+    if (tp->tm_min < 0) {
+        tp->tm_min += 60;
+    }
+    if (tp->tm_sec < 0) {
+        tp->tm_sec += 60;
+    }
+    if (tp->tm_wday < 0) {
+        tp->tm_wday += 7;
+    }
+    mprAssert(tp->tm_hour >= 0);
+    mprAssert(tp->tm_min >= 0);
+    mprAssert(tp->tm_sec >= 0);
+    mprAssert(tp->tm_wday >= 0);
+    mprAssert(tp->tm_mon >= 0);
+    mprAssert(tp->tm_yday >= 0);
+    mprAssert(tp->tm_mday >= 1);
 }
 
 
-struct tm *mprDecodeUniversalTime(MprCtx ctx, struct tm *timep, MprTime time)
-{
-    time_t      when;
-
-    when = (time_t) (time / MPR_TICKS_PER_SEC);
-#if BLD_UNIX_LIKE || WINCE
-    gmtime_r(&when, timep);
-#else
-    *timep = *gmtime(&when);
-#endif
-    return timep;
-}
-
-
-char *mprFormatLocalTime(MprCtx ctx, MprTime time)
-{
-    struct tm   tm;
-    mprDecodeLocalTime(ctx, &tm, time);
-    return mprFormatTime(ctx, MPR_DEFAULT_DATE, &tm);
-}
-
-
+/********************************* Formatting **********************************/
 /*
     Format a time string. This uses strftime if available and so the supported formats vary from platform to platform.
     Strftime should supports some of these these formats:
 
-         %A      full weekday name (Monday)
-         %a      abbreviated weekday name (Mon)
-         %B      full month name (January)
-         %b      abbreviated month name (Jan)
-         %C      century. Year / 100. (0-N)
-         %c      standard date and time representation
-         %D      date (%m/%d/%y)
-         %d      day-of-month (01-31)
-         %e      day-of-month with a leading space if only one digit ( 1-31)
-         %F      same as %Y-%m-%d
-         %H      hour (24 hour clock) (00-23)
-         %h      same as %b
-         %I      hour (12 hour clock) (01-12)
-         %j      day-of-year (001-366)
-         %k      hour (24 hour clock) (0-23)
-         %l      the hour (12-hour clock) as a decimal number (1-12); single digits are preceded by a blank.
-         %M      minute (00-59)
-         %m      month (01-12)
-         %n      a newline
-         %P      lower case am / pm
-         %p      AM / PM
-         %R      same as %H:%M
-         %r      same as %H:%M:%S %p
-         %S      second (00-59)
-         %s      seconds since epoch
-         %T      time (%H:%M:%S)
-         %t      a tab.
-         %U      week-of-year, first day sunday (00-53)
-         %u      the weekday (Monday as the first day of the week) as a decimal number (1-7).
-         %v      is equivalent to ``%e-%b-%Y''.
-         %W      week-of-year, first day monday (00-53)
-         %w      weekday (0-6, sunday is 0)
-         %X      standard time representation
-         %x      standard date representation
-         %Y      year with century
-         %y      year without century (00-99)
-         %Z      timezone name
-         %z      offset from UTC (-hhmm or +hhmm)
-         %+      national representation of the date and time (the format is similar to that produced by date(1)).
-         %%      percent sign
+     %A      full weekday name (Monday)
+     %a      abbreviated weekday name (Mon)
+     %B      full month name (January)
+     %b      abbreviated month name (Jan)
+     %C      century. Year / 100. (0-N)
+     %c      standard date and time representation
+     %D      date (%m/%d/%y)
+     %d      day-of-month (01-31)
+     %e      day-of-month with a leading space if only one digit ( 1-31)
+     %F      same as %Y-%m-%d
+     %H      hour (24 hour clock) (00-23)
+     %h      same as %b
+     %I      hour (12 hour clock) (01-12)
+     %j      day-of-year (001-366)
+     %k      hour (24 hour clock) (0-23)
+     %l      the hour (12-hour clock) as a decimal number (1-12); single digits are preceded by a blank.
+     %M      minute (00-59)
+     %m      month (01-12)
+     %n      a newline
+     %P      lower case am / pm
+     %p      AM / PM
+     %R      same as %H:%M
+     %r      same as %H:%M:%S %p
+     %S      second (00-59)
+     %s      seconds since epoch
+     %T      time (%H:%M:%S)
+     %t      a tab.
+     %U      week-of-year, first day sunday (00-53)
+     %u      the weekday (Monday as the first day of the week) as a decimal number (1-7).
+     %v      is equivalent to ``%e-%b-%Y''.
+     %W      week-of-year, first day monday (00-53)
+     %w      weekday (0-6, sunday is 0)
+     %X      standard time representation
+     %x      standard date representation
+     %Y      year with century
+     %y      year without century (00-99)
+     %Z      timezone name
+     %z      offset from UTC (-hhmm or +hhmm)
+     %+      national representation of the date and time (the format is similar to that produced by date(1)).
+     %%      percent sign
 
-         Some platforms may also support the following format extensions:
-         %E*     POSIX locale extensions. Where "*" is one of the characters: c, C, x, X, y, Y.
-                 representations. 
-         %G      a year as a decimal number with century. This year is the one that contains the greater part of
-                 the week (Monday as the first day of the week).
-         %g      the same year as in ``%G'', but as a decimal number without century (00-99).
-         %O*     POSIX locale extensions. Where "*" is one of the characters: d, e, H, I, m, M, S, u, U, V, w, W, y.
-                 Additionly %OB implemented to represent alternative months names (used standalone, without day mentioned). 
-         %V      the week number of the year (Monday as the first day of the week) as a decimal number (01-53). If the week 
-                 containing January 1 has four or more days in the new year, then it is week 1; otherwise it is the last 
-                 week of the previous year, and the next week is week 1.
+     Some platforms may also support the following format extensions:
+     %E*     POSIX locale extensions. Where "*" is one of the characters: c, C, x, X, y, Y.
+             representations. 
+     %G      a year as a decimal number with century. This year is the one that contains the greater part of
+             the week (Monday as the first day of the week).
+     %g      the same year as in ``%G'', but as a decimal number without century (00-99).
+     %O*     POSIX locale extensions. Where "*" is one of the characters: d, e, H, I, m, M, S, u, U, V, w, W, y.
+             Additionly %OB implemented to represent alternative months names (used standalone, without day mentioned). 
+     %V      the week number of the year (Monday as the first day of the week) as a decimal number (01-53). If the week 
+             containing January 1 has four or more days in the new year, then it is week 1; otherwise it is the last 
+             week of the previous year, and the next week is week 1.
 
     Useful formats:
         RFC822: "%a, %d %b %Y %H:%M:%S %Z           "Fri, 07 Jan 2003 12:12:21 PDT"
                 "%T %F                              "12:12:21 2007-01-03"
                 "%v                                 "07-Jul-2003"
  */
-
-#if WIN
-    #define VALID_FMT "AaBbCcDdEeFHhIjklMmnOPpRrSsTtUuvWwXxYyZz+%"
-#elif MACOSX
-    #define VALID_FMT "AaBbCcDdEeFGgHhIjklMmnOPpRrSsTtUuVvWwXxYyZz+%"
-#else
-    #define VALID_FMT "AaBbCcDdEeFGgHhIjklMmnOPpRrSsTtUuVvWwXxYyZz+%"
-#endif
 
 #if HAS_STRFTIME
 /*
@@ -434,16 +628,15 @@ char *mprFormatTime(MprCtx ctx, cchar *fmt, struct tm *tp)
 #if BLD_WIN_LIKE
 {
     cchar   *cp, *pat;
-    char    tz[80], *sign, *dp, *endp;
-    long    timezone;
-    int     len, size, value;
+    char    *sign, *dp, *endp;
+    int     size, value;
 
     /*
         Simulate: D, T, z
      */
     dp = localFmt;
     endp = &localFmt[sizeof(localFmt) - 1];
-    for (cp = fmt, size = sizeof(localFmt) - 1; *cp && dp < &localFmt[sizeof(localFmt) - 32]; size = dp - endp - 1) {
+    for (cp = fmt, size = sizeof(localFmt) - 1; *cp && dp < &localFmt[sizeof(localFmt) - 32]; size = endp - dp - 1) {
         if (*cp == '%') {
             *dp++ = *cp++;
 again:
@@ -549,7 +742,7 @@ again:
 
             case 's':
 				dp--;
-                mprItoa(dp, size, (int64) mprMakeTime(ctx, tp) / 1000, 10);
+                mprItoa(dp, size, (int64) mprMakeTime(ctx, tp) / MS_PER_SEC, 10);
                 dp += strlen(dp);
                 cp++;
                 break;
@@ -590,24 +783,14 @@ again:
                 break;
 
             case 'z':
-                _get_timezone(&timezone);
-                sign = (timezone >= 0) ? "-": "";
-                if (timezone < 0) {
-                    timezone = -timezone;
+                dp--;
+                value = mprGetTimeZoneOffset(ctx, makeTime(ctx, tp)) / (MS_PER_SEC * 60);
+                sign = (value < 0) ? "-" : "";
+                if (value < 0) {
+                    value = -value;
                 }
-                timezone /= 60;
-                if (tp->tm_isdst == 1) {
-                    TIME_ZONE_INFORMATION  tinfo;
-                    GetTimeZoneInformation(&tinfo);
-                    timezone += (tinfo.DaylightBias);
-                }
-                mprSprintf(tz, sizeof(tz), "%s%02d%02d", sign, timezone / 60, timezone % 60);
-                len = strlen(tz);
-                if (&dp[len] >= &localFmt[sizeof(localFmt) - 9]) {
-                    break;
-                }
-                mprStrcpy(--dp, len + 1, tz);
-                dp += len;
+                mprSprintf(dp, size, "%s%02d%02d", sign, value / 60, value % 60);
+                dp += strlen(dp);
                 cp++;
                 break;
 
@@ -677,39 +860,15 @@ static void digits(MprBuf *buf, int count, int fill, int value)
 static char *getTimeZoneName(MprCtx ctx, struct tm *tp)
 {
 #if BLD_WIN_LIKE
-    WCHAR                   *wzone;
+    //MOB1 - is tp->tm_zone set for windows?
     TIME_ZONE_INFORMATION   tz;
+    WCHAR                   *wzone;
     GetTimeZoneInformation(&tz);
     wzone = tp->tm_isdst ? tz.DaylightName : tz.StandardName;
     return mprToAsc(ctx, wzone);
 #else
     tzset();
     return mprStrdup(ctx, tp->tm_zone);
-#endif
-}
-
-
-static int getTimeZone(MprCtx ctx, struct tm *tp)
-{
-#if WIN
-    long    timezone;
-    _get_timezone(&timezone);
-    sign = (timezone >= 0) ? "-": "";
-    if (timezone < 0) {
-        timezone = -timezone;
-    }
-    timezone /= 60;
-    if (tp->tm_isdst == 1) {
-        TIME_ZONE_INFORMATION  tinfo;
-        GetTimeZoneInformation(&tinfo);
-        timezone += (tinfo.DaylightBias);
-    }
-    return timezone;
-#elif LINUX || MACOSX
-    return tp->tm_gmtoff / 60;
-#else
-    mprAssert(0);
-    return 0;
 #endif
 }
 
@@ -895,7 +1054,7 @@ char *mprFormatTime(MprCtx ctx, cchar *fmt, struct tm *tp)
             break;
 
         case 's':                                       /* seconds since epoch */
-            mprPutFmtToBuf(buf, "%d", mprMakeTime(ctx, tp) / 1000);
+            mprPutFmtToBuf(buf, "%d", mprMakeTime(ctx, tp) / MS_PER_SEC);
             break;
 
         case 'T':
@@ -974,7 +1133,7 @@ char *mprFormatTime(MprCtx ctx, cchar *fmt, struct tm *tp)
             break;
 
         case 'z':
-            value = getTimeZone(ctx, tp);
+            value = mprGetTimeZoneOffset(ctx, makeTime(ctx, tp)) / (MS_PER_SEC * 60);
             if (value < 0) {
                 mprPutCharToBuf(buf, '-');
                 value = -value;
@@ -1001,6 +1160,8 @@ char *mprFormatTime(MprCtx ctx, cchar *fmt, struct tm *tp)
 }
 #endif /* HAS_STRFTIME */
 
+
+/*************************************** Parsing ************************************/
 
 static int lookupSym(Mpr *mpr, cchar *token, int kind)
 {
@@ -1087,10 +1248,10 @@ static void swapDayMonth(struct tm *tm)
 
 
 /*
-    Parse the a date/time string according to the given timezone and return the result in *time. Missing date items 
+    Parse the a date/time string according to the given zoneFlags and return the result in *time. Missing date items 
     may be provided via the defaults argument.
  */ 
-int mprParseTime(MprCtx ctx, MprTime *time, cchar *dateString, int timezone, struct tm *defaults)
+int mprParseTime(MprCtx ctx, MprTime *time, cchar *dateString, int zoneFlags, struct tm *defaults)
 {
     Mpr             *mpr;
     TimeToken       *tt;
@@ -1098,7 +1259,7 @@ int mprParseTime(MprCtx ctx, MprTime *time, cchar *dateString, int timezone, str
     char            *str, *next, *token, *cp, *sep;
     int64           value;
     int             kind, hour, min, negate, value1, value2, value3, alpha, alpha2, alpha3;
-    int             dateSep, offset, zoneOffset, explicitZone;
+    int             dateSep, offset, zoneOffset, explicitZone, fullYear;
 
     mpr = mprGetMpr(ctx);
 
@@ -1108,6 +1269,7 @@ int mprParseTime(MprCtx ctx, MprTime *time, cchar *dateString, int timezone, str
     sep = ", \t";
     cp = 0;
     next = 0;
+    fullYear = 0;
 
     /*
         Set these mandatory values to -1 so we can tell if they are set to valid values
@@ -1149,7 +1311,10 @@ int mprParseTime(MprCtx ctx, MprTime *time, cchar *dateString, int timezone, str
                 mprFree(str);
                 return 0;
             } else if (value > 32 || (tm.tm_mday >= 0 && tm.tm_year < 0)) {
-                tm.tm_year = (int) value;
+                if (value >= 1000) {
+                    fullYear = 1;
+                }
+                tm.tm_year = (int) value - 1900;
             } else if (tm.tm_mday < 0) {
                 tm.tm_mday = (int) value;
             }
@@ -1189,6 +1354,7 @@ int mprParseTime(MprCtx ctx, MprTime *time, cchar *dateString, int timezone, str
 
                 case TOKEN_OFFSET:
                     /* Named timezones or symbolic names like: tomorrow, yesterday, next week ... */ 
+//  MOB -- what are the units
                     offset += (int) value;
                     break;
 
@@ -1265,7 +1431,7 @@ int mprParseTime(MprCtx ctx, MprTime *time, cchar *dateString, int timezone, str
     /*
         Y2K fix and rebias
      */
-    if (0 <= tm.tm_year && tm.tm_year < 100) {
+    if (0 <= tm.tm_year && tm.tm_year < 100 && !fullYear) {
         if (tm.tm_year < 50) {
             tm.tm_year += 2000;
         } else {
@@ -1279,23 +1445,23 @@ int mprParseTime(MprCtx ctx, MprTime *time, cchar *dateString, int timezone, str
     /*
         Convert back to origin 0 for months
      */
-    tm.tm_mon--;
+    if (tm.tm_mon > 0) {
+        tm.tm_mon--;
+    }
 
     /*
         Validate and fill in missing items with defaults
      */
     validateTime(mpr, &tm, defaults);
 
-    if (timezone == MPR_LOCAL_TIMEZONE && !explicitZone) {
+    if (zoneFlags == MPR_LOCAL_TIMEZONE && !explicitZone) {
         *time = mprMakeTime(ctx, &tm);
     } else {
         *time = mprMakeUniversalTime(ctx, &tm);
-        *time += -(zoneOffset * 60 * MPR_TICKS_PER_SEC);
+        *time += -(zoneOffset * MS_PER_MIN);
     }
-    if (*time < 0) {
-        return MPR_ERR_WONT_FIT;
-    }
-    *time += (offset * MPR_TICKS_PER_SEC);
+//  MOB -- what are the units for offset
+    *time += (offset * MS_PER_SEC);
     return 0;
 }
 
@@ -1328,7 +1494,6 @@ static void validateTime(MprCtx ctx, struct tm *tm, struct tm *defaults)
         empty.tm_mday = 1;
         empty.tm_year = 70;
     }
-
     if (tm->tm_hour < 0 && tm->tm_min < 0 && tm->tm_sec < 0) {
         tm->tm_hour = defaults->tm_hour;
         tm->tm_min = defaults->tm_min;
@@ -1338,7 +1503,7 @@ static void validateTime(MprCtx ctx, struct tm *tm, struct tm *defaults)
     /*
         Get weekday, if before today then make next week
      */
-    if (tm->tm_wday >= 0 && tm->tm_year == 0 && tm->tm_mon < 0 && tm->tm_mday < 0) {
+    if (tm->tm_wday >= 0 && tm->tm_year == -1 && tm->tm_mon < 0 && tm->tm_mday < 0) {
         tm->tm_mday = defaults->tm_mday + (tm->tm_wday - defaults->tm_wday + 7) % 7;
         tm->tm_mon = defaults->tm_mon;
         tm->tm_year = defaults->tm_year;
@@ -1348,7 +1513,7 @@ static void validateTime(MprCtx ctx, struct tm *tm, struct tm *defaults)
         Get month, if before this month then make next year
      */
     if (tm->tm_mon >= 0 && tm->tm_mon <= 11 && tm->tm_mday < 0) {
-        if (tm->tm_year < 0) {
+        if (tm->tm_year == -1) {
             tm->tm_year = defaults->tm_year + (((tm->tm_mon - defaults->tm_mon) < 0) ? 1 : 0);
         }
         tm->tm_mday = defaults->tm_mday;
@@ -1357,13 +1522,12 @@ static void validateTime(MprCtx ctx, struct tm *tm, struct tm *defaults)
     /*
         Get date, if before current time then make tomorrow
      */
-    if (tm->tm_hour >= 0 && tm->tm_year < 0 && tm->tm_mon < 0 && tm->tm_mday < 0) {
+    if (tm->tm_hour >= 0 && tm->tm_year == -1 && tm->tm_mon < 0 && tm->tm_mday < 0) {
         tm->tm_mday = defaults->tm_mday + ((tm->tm_hour - defaults->tm_hour) < 0 ? 1 : 0);
         tm->tm_mon = defaults->tm_mon;
         tm->tm_year = defaults->tm_year;
     }
-
-    if (tm->tm_year < 0) {
+    if (tm->tm_year == -1) {
         tm->tm_year = defaults->tm_year;
     }
     if (tm->tm_mon < 0) {
@@ -1384,92 +1548,89 @@ static void validateTime(MprCtx ctx, struct tm *tm, struct tm *defaults)
 }
 
 
+/********************************* Compatibility **********************************/
 /*
-    Compatibility for windows and brew
+    Compatibility for windows and VxWorks
  */
 #if BLD_WIN_LIKE || VXWORKS
 static int gettimeofday(struct timeval *tv, struct timezone *tz)
 {
-#if BLD_WIN_LIKE
-    FILETIME        fileTime;
-    MprTime         now;
-    static int      tzOnce;
+    #if BLD_WIN_LIKE
+        FILETIME        fileTime;
+        MprTime         now;
+        static int      tzOnce;
 
-    if (NULL != tv) {
-        /*
-            Convert from 100-nanosec units to microsectonds
-         */
-        GetSystemTimeAsFileTime(&fileTime);
-        now = ((((MprTime) fileTime.dwHighDateTime) << BITS(uint)) + ((MprTime) fileTime.dwLowDateTime));
-        now /= 10;
+        if (NULL != tv) {
+            /*
+                Convert from 100-nanosec units to microsectonds
+             */
+            GetSystemTimeAsFileTime(&fileTime);
+            now = ((((MprTime) fileTime.dwHighDateTime) << BITS(uint)) + ((MprTime) fileTime.dwLowDateTime));
+            now /= 10;
 
-        now -= TIME_GENESIS;
-        tv->tv_sec = (long) (now / 1000000);
-        tv->tv_usec = (long) (now % 1000000);
-    }
-
-    if (NULL != tz) {
-        TIME_ZONE_INFORMATION   zone;
-        int                     rc, bias;
-        rc = GetTimeZoneInformation(&zone);
-        bias = (int) zone.Bias;
-        if (rc == TIME_ZONE_ID_DAYLIGHT) {
-            tz->tz_dsttime = 1;
-        } else {
-            tz->tz_dsttime = 0;
+            now -= TIME_GENESIS;
+            tv->tv_sec = (long) (now / 1000000);
+            tv->tv_usec = (long) (now % 1000000);
         }
-        tz->tz_minuteswest = bias;
-    }
-
-#elif VXWORKS
-    struct tm       tm;
-    struct timespec now;
-    time_t          t;
-    char            *tze, *p;
-    int rc;
-
-    if ((rc = clock_gettime(CLOCK_REALTIME, &now)) == 0) {
-        tv->tv_sec  = now.tv_sec;
-        tv->tv_usec = (now.tv_nsec + 500) / 1000;
-        if ((tze = getenv("TIMEZONE")) != 0) {
-            if ((p = strchr(tze, ':')) != 0) {
-                if ((p = strchr(tze, ':')) != 0) {
-                    tz->tz_minuteswest = mprAtoi(++p, 10);
-                }
+        if (NULL != tz) {
+            TIME_ZONE_INFORMATION   zone;
+            int                     rc, bias;
+            rc = GetTimeZoneInformation(&zone);
+            bias = (int) zone.Bias;
+            if (rc == TIME_ZONE_ID_DAYLIGHT) {
+                tz->tz_dsttime = 1;
+            } else {
+                tz->tz_dsttime = 0;
             }
-            t = tickGet();
-            tz->tz_dsttime = (localtime_r(&t, &tm) == 0) ? tm.tm_isdst : 0;
+            tz->tz_minuteswest = bias;
         }
-    }
-    return rc;
-#endif
-    return 0;
+        return 0;
+
+    #elif VXWORKS
+        struct tm       tm;
+        struct timespec now;
+        time_t          t;
+        char            *tze, *p;
+        int             rc;
+
+        if ((rc = clock_gettime(CLOCK_REALTIME, &now)) == 0) {
+            tv->tv_sec  = now.tv_sec;
+            tv->tv_usec = (now.tv_nsec + 500) / MS_PER_SEC;
+            if ((tze = getenv("TIMEZONE")) != 0) {
+                if ((p = strchr(tze, ':')) != 0) {
+                    if ((p = strchr(tze, ':')) != 0) {
+                        tz->tz_minuteswest = mprAtoi(++p, 10);
+                    }
+                }
+                t = tickGet();
+                tz->tz_dsttime = (localtime_r(&t, &tm) == 0) ? tm.tm_isdst : 0;
+            }
+        }
+        return rc;
+    #endif
 }
-#endif
+#endif /* BLD_WIN_LIKE || VXWORKS */
 
-
+/********************************* Measurement **********************************/
 /*
     High resolution timer
  */
-#if BLD_DEBUG && KEEP
-    #if BLD_UNIX_LIKE
-        #if MPR_CPU_IX86
-            inline MprTime mprGetHiResTime() {
-                MprTime  now;
-                __asm__ __volatile__ ("rdtsc" : "=A" (now));
-                return now;
-            }
-        #endif /* MPR_CPU_IX86 */
-
-    #elif BLD_WIN_LIKE
-        inline MprTime mprGetHiResTime()
-        {
+#if BLD_UNIX_LIKE
+    #if MPR_CPU_IX86
+        inline MprTime mprGetHiResTime() {
             MprTime  now;
-            QueryPerformanceCounter((LARGE_INTEGER*) &now);
+            __asm__ __volatile__ ("rdtsc" : "=A" (now));
             return now;
         }
-    #endif /* BLD_WIN_LIKE */
-#endif /* BLD_DEBUG */
+    #endif /* MPR_CPU_IX86 */
+
+#elif BLD_WIN_LIKE
+    inline MprTime mprGetHiResTime() {
+        MprTime  now;
+        QueryPerformanceCounter((LARGE_INTEGER*) &now);
+        return now;
+    }
+#endif /* BLD_WIN_LIKE */
 
 
 /*
