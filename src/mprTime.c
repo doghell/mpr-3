@@ -384,8 +384,6 @@ static int getTimeZoneOffsetFromTm(MprCtx ctx, struct tm *tp)
         offset += tinfo.StandardBias;
     }
     return -offset * 60 * MS_PER_SEC;
-#elif BLD_UNIX_LIKE
-    return tp->tm_gmtoff * MS_PER_SEC;
 #elif VXWORKS
     char  *tze, *p;
     int   offset;
@@ -402,7 +400,7 @@ static int getTimeZoneOffsetFromTm(MprCtx ctx, struct tm *tp)
     }
     return offset;
 #else
-    return 0;
+    return tp->tm_gmtoff * MS_PER_SEC;
 #endif
 }
 
