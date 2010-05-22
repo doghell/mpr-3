@@ -24,7 +24,7 @@
 #endif
 
 /*
-    Token types ored inot the TimeToken value
+    Token types or'd into the TimeToken value
  */
 #define TOKEN_DAY       0x01000000
 #define TOKEN_MONTH     0x02000000
@@ -340,7 +340,6 @@ static int localTime(MprCtx ctx, struct tm *timep, MprTime time)
     return localtime_r(&when, timep) != 0;
 #else
     struct tm   *tp;
-    //  MOB -- thread safe?
     time_t when = (time_t) (time / MS_PER_SEC);
     if ((tp = localtime(&when)) == 0) {
         return MPR_ERR;
@@ -481,7 +480,6 @@ static void decodeTime(MprCtx ctx, struct tm *tp, MprTime when, bool local)
     offset = dst = 0;
 
     if (local) {
-        //  MOB -- cache the results somehow
         alternate = when;
         if (when < MIN_TIME || when > MAX_TIME) {
             /*
@@ -860,7 +858,6 @@ static void digits(MprBuf *buf, int count, int fill, int value)
 static char *getTimeZoneName(MprCtx ctx, struct tm *tp)
 {
 #if BLD_WIN_LIKE
-    //MOB1 - is tp->tm_zone set for windows?
     TIME_ZONE_INFORMATION   tz;
     WCHAR                   *wzone;
     GetTimeZoneInformation(&tz);
@@ -1354,7 +1351,7 @@ int mprParseTime(MprCtx ctx, MprTime *time, cchar *dateString, int zoneFlags, st
 
                 case TOKEN_OFFSET:
                     /* Named timezones or symbolic names like: tomorrow, yesterday, next week ... */ 
-//  MOB -- what are the units
+                    /* Units are seconds */
                     offset += (int) value;
                     break;
 
@@ -1460,7 +1457,6 @@ int mprParseTime(MprCtx ctx, MprTime *time, cchar *dateString, int zoneFlags, st
         *time = mprMakeUniversalTime(ctx, &tm);
         *time += -(zoneOffset * MS_PER_MIN);
     }
-//  MOB -- what are the units for offset
     *time += (offset * MS_PER_SEC);
     return 0;
 }
