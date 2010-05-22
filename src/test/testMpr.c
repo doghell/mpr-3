@@ -18,7 +18,7 @@ extern MprTestDef testCmd;
 #endif
 extern MprTestDef testFile;
 extern MprTestDef testHash;
-#if BLD_FEATURE_HTTP_CLIENT
+#if BLD_FEATURE_HTTP_CLIENT && DISABLED
 extern MprTestDef testHttp;
 #endif
 extern MprTestDef testList;
@@ -46,7 +46,7 @@ static MprTestDef *testGroups[] =
     &testFile,
     &testPath,
     &testHash,
-#if BLD_FEATURE_HTTP_CLIENT
+#if BLD_FEATURE_HTTP_CLIENT && DISABLED
     &testHttp,
 #endif
     &testList,
