@@ -18,7 +18,6 @@
 
 #define MAX_TIME    (((time_t) -1) & ~(((time_t) 1) << ((sizeof(time_t) * 8) - 1)))
 #if BLD_UNIX_LIKE
-//MOB #define MIN_TIME    (((time_t) -1) & ~(((time_t) 1) << ((sizeof(time_t) * 8) - 1)))
 #define MIN_TIME    (((time_t) 1) << ((sizeof(time_t) * 8) - 1))
 #else
 #define MIN_TIME    0
@@ -223,6 +222,9 @@ int mprCreateTimeService(MprCtx ctx)
     for (tt = offsets; tt->name; tt++) {
         mprAddHash(mpr->timeTokens, tt->name, (void*) tt);
     }
+    /*
+        Get timezone without DST
+     */
     gettimeofday(&tv, &tz);
     mpr->timezone = -tz.tz_minuteswest * MS_PER_MIN;
     return 0;
@@ -306,22 +308,11 @@ MprTime mprGetElapsedTime(MprCtx ctx, MprTime mark)
 }
 
 
-#if UNUSED
-int mprGetTimeZoneOffset(MprCtx ctx, MprTime when)
-{
-    struct tm   t;
-
-    decodeTime(ctx, &t, when, 1);
-    return getTimeZoneOffsetFromTm(ctx, t.tm_isdst);
-}
-#endif
-
-
 /*
     Get the timezone offset including DST
  */
 int mprGetTimeZoneOffset(MprCtx ctx, MprTime when)
-{ 
+{
     MprTime     alternate;
     struct tm   t;
 
@@ -425,9 +416,6 @@ static int getTimeZoneOffsetFromTm(MprCtx ctx, int isDst)
     }
     return offset;
 #else
-#if UNUSED
-    return tp->tm_gmtoff * MS_PER_SEC;
-#endif
     return mprGetMpr(ctx)->timezone + (isDst * MS_PER_HOUR);
 #endif
 }
@@ -507,7 +495,6 @@ static int getYear(MprTime when)
     }
     return year;
 }
-
 
 
 /*
@@ -1574,7 +1561,7 @@ static void validateTime(MprCtx ctx, struct tm *tm, struct tm *defaults)
 /*
     Compatibility for windows and VxWorks
  */
-#if BLD_WIN_LIKE || VXOWKRS
+#if BLD_WIN_LIKE || VXWORKS
 static int gettimeofday(struct timeval *tv, struct timezone *tz)
 {
     #if BLD_WIN_LIKE
