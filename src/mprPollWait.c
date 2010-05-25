@@ -11,7 +11,7 @@
 
 #include    "mpr.h"
 
-#if LINUX || MACOSX
+#if LINUX || MACOSX || FREEBSD
 /********************************** Forwards **********************************/
 
 static void getWaitFds(MprWaitService *ws);

@@ -35,7 +35,11 @@ int mprStartOsService(MprOsService *os)
     /* 
      *  Open a syslog connection
      */
+#if SOLARIS
+    openlog(mprGetAppName(os), LOG_CONS, LOG_LOCAL0);
+#else
     openlog(mprGetAppName(os), LOG_CONS || LOG_PERROR, LOG_LOCAL0);
+#endif
     return 0;
 }
 

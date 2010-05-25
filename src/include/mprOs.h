@@ -39,7 +39,7 @@
 
 /********************************* O/S Includes *******************************/
 
-#if BLD_UNIX_LIKE && !VXWORKS && !MACOSX
+#if BLD_UNIX_LIKE && !VXWORKS && !MACOSX && !FREEBSD
     #include    <sys/types.h>
     #include    <time.h>
     #include    <arpa/inet.h>
@@ -70,7 +70,7 @@
     #include    <sys/mman.h>
     #include    <sys/stat.h>
     #include    <sys/param.h>
-    #if !CYGWIN
+    #if !CYGWIN && !SOLARIS
         #include    <sys/prctl.h>
     #endif
     #include    <sys/resource.h>
@@ -252,7 +252,10 @@
     #include    <sys/types.h>
     #include    <sys/utsname.h>
     #include    <sys/wait.h>
+    #include    <sys/mman.h>
+    #include    <sys/sysctl.h>
     #include    <unistd.h>
+    #include    <poll.h>
 #if BLD_FEATURE_FLOATING_POINT
     #include    <float.h>
     #define __USE_ISOC99 1
@@ -420,7 +423,9 @@ extern "C" {
 #define BITSPERBYTE     (8 * sizeof(char))
 #endif
 
+#if !SOLARIS
 #define BITS(type)      (BITSPERBYTE * (int) sizeof(type))
+#endif
 
 #ifndef MAXINT
 #if INT_MAX
@@ -620,6 +625,7 @@ extern "C" {
     #define inline __inline__
     #endif
 
+extern int gettimeofday(struct timeval *tv, struct timezone *tz);
 #endif  /* VXWORKS */
 
 /******************************** MacOsx Defines ******************************/
@@ -665,6 +671,7 @@ extern "C" {
 #endif /* MACOSX */
 
 /*********************************** FREEBSD **************************************/
+
 #if FREEBSD
     typedef off_t MprOffset;
     typedef unsigned long ulong;
@@ -681,7 +688,9 @@ extern "C" {
     #define O_TEXT          0
     #define SOCKET_ERROR    -1
     #define MPR_DLL_EXT     ".dylib"
+#if UNUSED
     #define __WALL          0x40000000
+#endif
     #define PTHREAD_MUTEX_RECURSIVE_NP  PTHREAD_MUTEX_RECURSIVE
 
 #if BLD_FEATURE_FLOATING_POINT
@@ -855,6 +864,7 @@ extern "C" {
     extern int      getuid(void);
     extern int      geteuid(void);
 
+    extern int gettimeofday(struct timeval *tv, struct timezone *tz);
 #endif /* WIN_LIKE */
 
 /******************************** Wince Defines *******************************/

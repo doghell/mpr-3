@@ -3435,10 +3435,6 @@ typedef void *Type;
  */
 extern void *mprAlloc(MprCtx ctx, uint size);
 
-#if UNUSED
-extern MprBlk *mprAllocBlock(MprCtx ctx, MprHeap *heap, MprBlk *parent, uint size);
-#endif
-
 /**
  *  Allocate an object block of memory
  *  @description Allocates a block of memory using the supplied memory context \a ctx as the parent. #mprAllocWithDestructor
@@ -3657,10 +3653,6 @@ extern char *_mprStrdup(MprCtx ctx, cchar *str);
 
 #define mprAlloc(ctx, size) \
     mprSetName(_mprAlloc(ctx, size), MPR_LOC)
-#if UNUSED
-#define mprAllocBlock(heap, parent, size) \
-    mprSetName(_mprAllocBlock(heap, parent, size), MPR_LOC)
-#endif
 #define mprAllocWithDestructor(ctx, size, destructor) \
     mprSetName(_mprAllocWithDestructor(ctx, size, destructor), MPR_LOC)
 #define mprAllocWithDestructorZeroed(ctx, size, destructor) \
@@ -3899,13 +3891,9 @@ typedef struct MprWaitService {
     int             lastMaskGeneration;     /* Last generation number for mask changes */
     int             rebuildMasks;           /* IO mask rebuild required */
 
-#if LINUX || MACOSX
+#if LINUX || MACOSX || FREEBSD
     struct pollfd   *fds;                   /* File descriptors to poll on */
     int             fdsCount;               /* Count of fds */
-#if UNUSED
-    struct pollfd   *stableFds;             /* Stable list used while actually polling */
-    int             stableFdsCount;         /* Count of stableFds */
-#endif
     int             fdsSize;                /* Size of fds array */
     int             breakPipe[2];           /* Pipe to wakeup select when multithreaded */
 

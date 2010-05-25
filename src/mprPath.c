@@ -1471,12 +1471,27 @@ char *mprGetAppPath(MprCtx ctx)
     mpr->appPath = mprGetAbsPath(ctx, pbuf);
     return mprStrdup(ctx, mpr->appPath);
 
+#elif FREEBSD 
+    char    pbuf[MPR_MAX_STRING];
+    int     len;
+
+    len = readlink("/proc/curproc/file", pbuf, sizeof(pbuf) - 1);
+    if (len < 0) {
+        return mprGetAbsPath(ctx, ".");
+     }
+     pbuf[len] = '\0';
+     mpr->appPath = mprGetAbsPath(ctx, pbuf);
+     return mprStrdup(ctx, mpr->appPath);
+
 #elif BLD_UNIX_LIKE 
     char    pbuf[MPR_MAX_STRING], *path;
     int     len;
 
+#if SOLARIS
+    path = mprAsprintf(ctx, -1, "/proc/%i/path/a.out", getpid()); 
+#else
     path = mprAsprintf(ctx, -1, "/proc/%i/exe", getpid()); 
-
+#endif
     len = readlink(path, pbuf, sizeof(pbuf) - 1);
     if (len < 0) {
         mprFree(path);

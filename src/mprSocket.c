@@ -458,7 +458,7 @@ static int connectSocket(MprSocket *sp, cchar *host, int port, int initialFlags)
         if (rc < 0) {
             /* MAC/BSD returns EADDRINUSE */
             if (errno == EINPROGRESS || errno == EALREADY || errno == EADDRINUSE) {
-#if MACOSX || LINUX
+#if MACOSX || LINUX || FREEBSD
                 do {
                     struct pollfd pfd;
                     pfd.fd = sp->fd;

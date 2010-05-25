@@ -221,6 +221,12 @@ typedef unsigned Long ULong;
  #include "stdlib.h"
  #include "string.h"
 
+#if FREEBSD
+#include <sys/types.h>
+#include <sys/uio.h>
+#include <unistd.h>
+#endif
+
 #ifdef USE_LOCALE
  #include "locale.h"
 #endif
