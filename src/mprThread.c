@@ -933,6 +933,7 @@ static void workerMain(MprWorker *worker, MprThread *tp)
     changeState(worker, 0);
 
     ws->numThreads--;
+    worker->thread = 0;
     mprUnlock(ws->mutex);
 }
 

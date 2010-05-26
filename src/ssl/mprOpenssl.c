@@ -46,6 +46,7 @@ static DH       *dhCallback(SSL *ssl, int isExport, int keyLength);
 static void     disconnectOss(MprSocket *sp);
 static int      flushOss(MprSocket *sp);
 static int      listenOss(MprSocket *sp, cchar *host, int port, MprSocketAcceptProc acceptFn, void *data, int flags);
+static int      lockDestructor(void *ptr);
 static int      openSslDestructor(MprSsl *ssl);
 static int      openSslSocketDestructor(MprSslSocket *ssp);
 static int      readOss(MprSocket *sp, void *buf, int len);
@@ -96,9 +97,9 @@ int mprCreateOpenSslModule(MprCtx ctx, bool lazy)
      *  Configure the global locks
      */
     numLocks = CRYPTO_num_locks();
-    locks = (MprMutex**) mprAlloc(mpr, numLocks * sizeof(MprMutex*));
+    locks = (MprMutex**) mprAllocWithDestructor(mpr, numLocks * sizeof(MprMutex*), lockDestructor);
     for (i = 0; i < numLocks; i++) {
-        locks[i] = mprCreateLock(mpr);
+        locks[i] = mprCreateLock(locks);
     }
     CRYPTO_set_id_callback(sslThreadId);
     CRYPTO_set_locking_callback(sslStaticLock);
@@ -122,6 +123,13 @@ int mprCreateOpenSslModule(MprCtx ctx, bool lazy)
     if (!lazy) {
         getDefaultOpenSsl(mpr);
     }
+    return 0;
+}
+
+
+static int lockDestructor(void *ptr)
+{
+    locks = 0;
     return 0;
 }
 
@@ -843,10 +851,13 @@ static ulong sslThreadId()
 static void sslStaticLock(int mode, int n, const char *file, int line)
 {
     mprAssert(0 <= n && n < numLocks);
-    if (mode & CRYPTO_LOCK) {
-        mprLock(locks[n]);
-    } else {
-        mprUnlock(locks[n]);
+
+    if (locks) {
+        if (mode & CRYPTO_LOCK) {
+            mprLock(locks[n]);
+        } else {
+            mprUnlock(locks[n]);
+        }
     }
 }
 
