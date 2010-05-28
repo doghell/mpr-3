@@ -103,7 +103,7 @@ function testCmdNoCapture(args): Boolean {
         assert(true)
         return true
     } catch (e) {
-        assert(false, e)
+        assert(false)
         return false
     }
 }
@@ -116,7 +116,7 @@ function testCmd(args): Boolean {
         assert(true)
         return true
     } catch (e) {
-        assert(false, e)
+        assert(false)
         return false
     }
 }
