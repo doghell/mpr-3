@@ -147,7 +147,9 @@ error:
 static int mprDestructor(Mpr *mpr)
 {
     if ((mpr->flags & MPR_STARTED) && !(mpr->flags & MPR_STOPPED)) {
-        mprStop(mpr);
+        if (!mprStop(mpr)) {
+            return 1;
+        }
     }
     return 0;
 
@@ -186,17 +188,21 @@ int mprStart(Mpr *mpr, int startEventsThread)
 }
 
 
-void mprStop(Mpr *mpr)
+bool mprStop(Mpr *mpr)
 {
+    int     stopped;
+
+    stopped = 1;
+
     mprLock(mpr->mutex);
     if (! (mpr->flags & MPR_STARTED) || (mpr->flags & MPR_STOPPED)) {
         mprUnlock(mpr->mutex);
-        return;
+        return 0;
     }
     mpr->flags |= MPR_STOPPED;
 
     /*
-     *  Trigger graceful termination. This will prevent further tasks and events being created.
+        Trigger graceful termination. This will prevent further tasks and events being created.
      */
     mprTerminate(mpr, 1);
 
@@ -205,10 +211,16 @@ void mprStop(Mpr *mpr)
 #endif
     mprStopSocketService(mpr->socketService);
 #if BLD_FEATURE_MULTITHREAD
-    mprStopWorkerService(mpr->workerService, MPR_TIMEOUT_STOP_TASK);
+    if (!mprStopWorkerService(mpr->workerService, MPR_TIMEOUT_STOP_TASK)) {
+        stopped = 0;
+    }
+    if (!mprStopThreadService(mpr->threadService, MPR_TIMEOUT_STOP_TASK)) {
+        stopped = 0;
+    }
 #endif
     mprStopModuleService(mpr->moduleService);
     mprStopOsService(mpr->osService);
+    return stopped;
 }
 
 
@@ -221,6 +233,7 @@ int mprStartEventsThread(Mpr *mpr)
     MprThread   *tp;
 
     mprLog(mpr, MPR_CONFIG, "Starting service thread");
+
     if ((tp = mprCreateThread(mpr, "events", serviceEvents, 0, MPR_NORMAL_PRIORITY, 0)) == 0) {
         return MPR_ERR_CANT_CREATE;
     }
@@ -240,6 +253,8 @@ static void serviceEvents(void *data, MprThread *tp)
     mpr = mprGetMpr(tp);
     mpr->serviceThread = tp->osThread;
     mprServiceEvents(mpr->dispatcher, -1, MPR_SERVICE_EVENTS | MPR_SERVICE_IO);
+    mpr->serviceThread = 0;
+    mpr->hasDedicatedService = 1;
 }
 
 

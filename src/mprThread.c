@@ -59,12 +59,23 @@ MprThreadService *mprCreateThreadService(Mpr *mpr)
         return 0;
     }
     ts->mainThread->isMain = 1;
-
+#if UNUSED
     if (mprAddItem(ts->threads, ts->mainThread) < 0) {
         mprFree(ts);
         return 0;
     }
+#endif
     return ts;
+}
+
+
+bool mprStopThreadService(MprThreadService *ts, int timeout)
+{
+    while (timeout > 0 && ts->threads->length > 1) {
+        mprSleep(ts, 50);
+        timeout -= 10;
+    }
+    return ts->threads->length == 0;
 }
 
 
@@ -141,7 +152,6 @@ MprThread *mprCreateThread(MprCtx ctx, cchar *name, MprThreadProc entry, void *d
     if (ts) {
         ctx = ts;
     }
-
     tp = mprAllocObjWithDestructorZeroed(ctx, MprThread, threadDestructor);
     if (tp == 0) {
         return 0;
@@ -158,7 +168,6 @@ MprThread *mprCreateThread(MprCtx ctx, cchar *name, MprThreadProc entry, void *d
     } else {
         tp->stackSize = stackSize;
     }
-
 #if BLD_WIN_LIKE
     tp->threadHandle = 0;
 #endif
@@ -561,11 +570,12 @@ int mprStartWorkerService(MprWorkerService *ws)
 }
 
 
-void mprStopWorkerService(MprWorkerService *ws, int timeout)
+bool mprStopWorkerService(MprWorkerService *ws, int timeout)
 {
     MprWorker     *worker;
-    int           next;
+    int           rc, next;
 
+    rc = 0;
     mprLock(ws->mutex);
 
     if (ws->pruneTimer) {
@@ -595,6 +605,7 @@ void mprStopWorkerService(MprWorkerService *ws, int timeout)
     mprAssert(ws->idleThreads->length == 0);
     mprAssert(ws->busyThreads->length == 0);
     mprUnlock(ws->mutex);
+    return ws->numThreads == 0;
 }
 
 

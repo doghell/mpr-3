@@ -538,7 +538,9 @@ int mprFree(void *ptr)
     decStats(heap, bp);
     unlinkBlock(bp);
     freeBlock(mpr, heap, bp);
-    unlockHeap(heap);
+    if (ptr != mpr) {
+        unlockHeap(heap);
+    }
     return 0;
 }
 
