@@ -8,12 +8,14 @@ BUILD_CROSS	:= 0
 
 include 	.makedep
 
-ifeq	($(BLD_FEATURE_TEST),1)
-testExtra:
-	if which ejs >/dev/null ; then \
-		$(BLD_TOOLS_DIR)/utest -v ; \
-	else \
-		$(call log) "[Test]" "Skip unit tests. Required \"ejs\" is not installed." ; \
+ifneq	($(BUILDING_CROSS),1)
+testExtra: 
+	testMpr -v -i 2 --depth $(BUILD_DEPTH)
+	if [ $(BUILD_DEPTH) -gt 2 ] ; then \
+		testMpr -v -i 400 --depth $(BUILD_DEPTH) ; \
+		for t in 2 4 8 16 ; do \
+			testMpr -v -i 2 --threads $$t --depth $(BUILD_DEPTH) ; \
+		done ; \
 	fi
 endif
 
