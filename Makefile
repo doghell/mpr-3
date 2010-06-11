@@ -131,12 +131,3 @@ uclibc:
 	BUILD_LD=/usr/bin/cc \
 	./configure --host=i386-pc-linux 
 	[ -f .makedep ] && make clean >/dev/null ; true
-
-redo:
-	hg pull
-	hg update -C
-	make config
-	make clean
-	make depend
-	make
-	make test
