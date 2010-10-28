@@ -200,9 +200,9 @@ static int configureOss(MprSsl *ssl)
     MprSocketService    *ss;
     MprSsl              *defaultSsl;
     SSL_CTX             *context;
+    uchar               resume[16];
 
     ss = mprGetMpr(ssl)->socketService;
-
     mprSetDestructor(ssl, (MprDestructor) openSslDestructor);
 
     context = SSL_CTX_new(SSLv23_method());
@@ -214,6 +214,9 @@ static int configureOss(MprSsl *ssl)
     SSL_CTX_set_app_data(context, (void*) ssl);
     SSL_CTX_set_quiet_shutdown(context, 1);
     SSL_CTX_sess_set_cache_size(context, 512);
+
+    RAND_bytes(resume, sizeof(resume));
+    SSL_CTX_set_session_id_context(context, resume, sizeof(resume));
 
     /*
      *  Configure the certificates
@@ -290,10 +293,17 @@ static int configureOss(MprSsl *ssl)
     /*
      *  Select the required protocols
      */
+#if UNUSED && KEEP
     if (!(ssl->protocols & MPR_HTTP_PROTO_SSLV2)) {
         SSL_CTX_set_options(context, SSL_OP_NO_SSLv2);
         mprLog(ssl, 4, "OpenSSL: Disabling SSLv2");
     }
+#else
+    /*
+        Disable SSLv2 by default -- it is insecure.
+     */
+    SSL_CTX_set_options(context, SSL_OP_NO_SSLv2);
+#endif
     if (!(ssl->protocols & MPR_HTTP_PROTO_SSLV3)) {
         SSL_CTX_set_options(context, SSL_OP_NO_SSLv3);
         mprLog(ssl, 4, "OpenSSL: Disabling SSLv3");
@@ -318,7 +328,6 @@ static int configureOss(MprSsl *ssl)
         ssl->dhKey1024 = defaultSsl->dhKey1024;
     }
     ssl->context = context;
-
     return 0;
 }
 
@@ -366,10 +375,12 @@ static int configureCertificates(MprSsl *ssl, SSL_CTX *ctx, char *key, char *cer
     key = (key == 0) ? cert : key;
     if (key) {
         if (SSL_CTX_use_PrivateKey_file(ctx, key, SSL_FILETYPE_PEM) <= 0) {
-            mprError(ssl, "OpenSSL: Can't define private key file: %s", key); 
-            return -1;
+            /* attempt ASN1 for self-signed format */
+            if (SSL_CTX_use_PrivateKey_file(ctx, key, SSL_FILETYPE_ASN1) <= 0) {
+                mprError(ssl, "OpenSSL: Can't define private key file: %s", key); 
+                return -1;
+            }
         }
-
         if (!SSL_CTX_check_private_key(ctx)) {
             mprError(ssl, "OpenSSL: Check of private key file failed: %s", key);
             return -1;
@@ -704,7 +715,6 @@ static int writeOss(MprSocket *sp, void *buf, int len)
         unlock(sp);
         return -1;
     }
-
     totalWritten = 0;
     ERR_clear_error();
 
@@ -729,7 +739,6 @@ static int writeOss(MprSocket *sp, void *buf, int len)
                 return -1;
             }
         }
-
         totalWritten += rc;
         buf = (void*) ((char*) buf + rc);
         len -= rc;

@@ -11,6 +11,7 @@
 #if BLD_FEATURE_CMD
 /******************************* Forward Declarations *************************/
 
+static void closeFiles(MprCmd *cmd);
 static int  cmdDestructor(MprCmd *cmd);
 static int  makeChannel(MprCmd *cmd, int index);
 static void resetCmd(MprCmd *cmd);
@@ -28,6 +29,23 @@ static void cmdTaskEntry(char *program, MprCmdTaskFn entry, int cmdArg);
 #endif
 
 /************************************* Code ***********************************/
+
+MprCmdService *mprCreateCmdService(Mpr *mpr)
+{
+    MprCmdService   *cs;
+
+    cs = (MprCmdService*) mprAllocObjWithDestructorZeroed(mpr, MprCmd, cmdDestructor);
+    if (cs == 0) {
+        return 0;
+    }
+    cs->cmds = mprCreateList(cs);
+#if BLD_FEATURE_MULTITHREAD
+    cs->mutex = mprCreateLock(cs);
+#endif
+    return cs;
+}
+
+
 /*
  *  Create a new command object
  */
@@ -44,6 +62,7 @@ MprCmd *mprCreateCmd(MprCtx ctx)
     cmd->completeCond = mprCreateCond(cmd);
     cmd->timeoutPeriod = MPR_TIMEOUT_CMD;
     cmd->timestamp = mprGetTime(cmd);
+    cmd->forkCallback = (MprForkCallback) closeFiles;
 
 #if VXWORKS
     cmd->startCond = semCCreate(SEM_Q_PRIORITY, SEM_EMPTY);
@@ -1260,9 +1279,7 @@ static int startProcess(MprCmd *cmd)
                 close(2);
             }
         }
-        for (i = 3; i < MPR_MAX_FILE; i++) {
-            close(i);
-        }
+        cmd->forkCallback(cmd->forkData);
         if (cmd->env) {
             rc = execve(cmd->program, cmd->argv, fixenv(cmd));
         } else {
@@ -1496,6 +1513,15 @@ static int makeChannel(MprCmd *cmd, int index)
     return 0;
 }
 #endif /* VXWORKS */
+
+
+static void closeFiles(MprCmd *cmd)
+{
+    int     i;
+    for (i = 3; i < MPR_MAX_FILE; i++) {
+        close(i);
+    }
+}
 
 
 #if BLD_UNIX_LIKE

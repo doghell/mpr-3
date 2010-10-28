@@ -155,6 +155,17 @@ MprModule *mprLookupModule(MprCtx ctx, cchar *name)
 }
 
 
+void *mprLookupModuleData(MprCtx ctx, cchar *name)
+{
+    MprModule   *module;
+
+    if ((module = mprLookupModule(ctx, name)) == NULL) {
+        return NULL;
+    }
+    return module->moduleData;
+}
+
+
 /*
  *  Update the module search path
  */

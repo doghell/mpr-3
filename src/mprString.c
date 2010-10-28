@@ -336,6 +336,42 @@ int mprStrcmp(cchar *str1, cchar *str2)
 
 
 /*
+ *  Case sensitive string comparison. Limited by length
+ */
+int mprStrcmpCount(cchar *str1, cchar *str2, int len)
+{
+    int     rc;
+
+    if (str1 == 0 || str2 == 0) {
+        return -1;
+    }
+    if (str1 == str2) {
+        return 0;
+    }
+
+    for (rc = 0; len-- > 0 && *str1 && rc == 0; str1++, str2++) {
+        rc = *str1 - *str2;
+    }
+    if (rc || len < 0) {
+        return rc;
+    } else if (*str1 == '\0' && *str2 == '\0') {
+        return 0;
+    } else if (*str1 == '\0') {
+        return -1;
+    } else if (*str2 == '\0') {
+        return 1;
+    }
+    return 0;
+}
+
+
+int mprStrStartsWith(cchar *dest, cchar *pat)
+{
+    return mprStrcmpCount(dest, pat, strlen(pat)) == 0;
+}
+
+
+/*
  *  Case insensitive string comparison. Stop at the end of str1.
  */
 int mprStrcmpAnyCase(cchar *str1, cchar *str2)

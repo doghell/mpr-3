@@ -62,9 +62,11 @@ MprEvent *mprCreateEvent(MprDispatcher *dispatcher, MprEventProc proc, int perio
 {
     MprEvent        *event;
 
+#if UNUSED
     if (mprIsExiting(dispatcher)) {
         return 0;
     }
+#endif
     event = mprAllocObjWithDestructor(dispatcher, MprEvent, eventDestructor);
     if (event == 0) {
         return 0;
@@ -277,8 +279,8 @@ int mprServiceEvents(MprDispatcher *dispatcher, int timeout, int flags)
                 continue;
             }
         } 
-        if (mprIsExiting(dispatcher)) {
-            return 0;
+        if (mprIsComplete(dispatcher)) {
+            break;
         }
         if (flags & MPR_SERVICE_IO) {
             dispatcher->now = mprGetTime(dispatcher);
@@ -293,7 +295,7 @@ int mprServiceEvents(MprDispatcher *dispatcher, int timeout, int flags)
 #endif
         }
         remaining = mprGetRemainingTime(dispatcher, mark, timeout);
-    } while (remaining > 0 && !mprIsExiting(dispatcher) && !(flags & MPR_SERVICE_ONE_THING));
+    } while (remaining > 0 && !mprIsComplete(dispatcher) && !(flags & MPR_SERVICE_ONE_THING));
 
     mprSpinLock(dispatcher->spin);
     dispatcher->flags &= ~MPR_DISPATCHER_WAIT_IO;
@@ -330,7 +332,15 @@ void mprDoEvent(MprEvent *event, void *workerThread)
      *  The callback can delete the event. NOTE: callback events MUST NEVER block.
      */
     if (event->proc) {
+        mprSpinLock(dispatcher->spin);
+        dispatcher->flags |= MPR_DISPATCHER_DO_EVENT;
+        mprSpinUnlock(dispatcher->spin);
+
         (*event->proc)(event->data, event);
+
+        mprSpinLock(dispatcher->spin);
+        dispatcher->flags &= ~MPR_DISPATCHER_DO_EVENT;
+        mprSpinUnlock(dispatcher->spin);
     }
 }
 
@@ -401,7 +411,6 @@ static void appendEvent(MprEvent *prior, MprEvent *event)
     prior->next->prev = event;
     prior->next = event;
 }
-
 
 
 /*

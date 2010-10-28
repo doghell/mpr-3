@@ -45,7 +45,6 @@ MprThreadService *mprCreateThreadService(Mpr *mpr)
         mprFree(ts);
         return 0;
     }
-
     mpr->serviceThread = mpr->mainOsThread = mprGetCurrentOsThread();
     mpr->threadService = ts;
     ts->stackSize = MPR_DEFAULT_STACK;
@@ -59,12 +58,6 @@ MprThreadService *mprCreateThreadService(Mpr *mpr)
         return 0;
     }
     ts->mainThread->isMain = 1;
-#if UNUSED
-    if (mprAddItem(ts->threads, ts->mainThread) < 0) {
-        mprFree(ts);
-        return 0;
-    }
-#endif
     return ts;
 }
 
@@ -171,7 +164,6 @@ MprThread *mprCreateThread(MprCtx ctx, cchar *name, MprThreadProc entry, void *d
 #if BLD_WIN_LIKE
     tp->threadHandle = 0;
 #endif
-
     if (ts && ts->threads) {
         mprLock(ts->mutex);
         if (mprAddItem(ts->threads, tp) < 0) {
@@ -791,10 +783,9 @@ static void pruneWorkers(MprWorkerService *ws, MprEvent *timer)
     MprWorker     *worker;
     int           index, toTrim;
 
-    if (mprIsExiting(ws) || mprGetDebugMode(ws)) {
+    if (mprGetDebugMode(ws)) {
         return;
     }
-
     /*
      *  Prune half of what we could prune. This gives exponentional decay. We use the high water mark seen in 
      *  the last period.
@@ -913,7 +904,7 @@ static void workerMain(MprWorker *worker, MprThread *tp)
 
     mprLock(ws->mutex);
 
-    while (!mprIsExiting(worker) && !(worker->state & MPR_WORKER_PRUNED)) {
+    while (!(worker->state & MPR_WORKER_PRUNED)) {
         if (worker->proc) {
             mprUnlock(ws->mutex);
             mprSetThreadPriority(worker->thread, worker->priority);

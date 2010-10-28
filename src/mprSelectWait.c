@@ -44,11 +44,14 @@ int mprInitSelectWait(MprWaitService *ws)
         fcntl(breakSock, F_SETFD, FD_CLOEXEC);
 #endif
         ws->breakAddress.sin_family = AF_INET;
+#if CYGWIN
         /*
             Cygwin doesn't work with INADDR_ANY
          */
-        // ws->breakAddress.sin_addr.s_addr = INADDR_ANY;
         ws->breakAddress.sin_addr.s_addr = inet_addr("127.0.0.1");;
+#else
+        ws->breakAddress.sin_addr.s_addr = INADDR_ANY;
+#endif
         ws->breakAddress.sin_port = htons((short) breakPort);
         rc = bind(breakSock, (struct sockaddr *) &ws->breakAddress, sizeof(ws->breakAddress));
         if (breakSock >= 0 && rc == 0) {

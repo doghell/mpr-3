@@ -62,6 +62,7 @@ Mpr *mprCreateEx(int argc, char **argv, MprAllocNotifier cback, void *shell)
     mpr->name = mprStrdup(mpr, BLD_PRODUCT);
     mpr->title = mprStrdup(mpr, BLD_NAME);
     mpr->version = mprStrdup(mpr, BLD_VERSION);
+    mpr->idleCallback = mprServicesAreIdle;
 
     if (mprCreateTimeService(mpr) < 0) {
         goto error;
@@ -100,6 +101,9 @@ Mpr *mprCreateEx(int argc, char **argv, MprAllocNotifier cback, void *shell)
         goto error;
     }
     if ((mpr->dispatcher = mprCreateDispatcher(mpr)) == 0) {
+        goto error;
+    }
+    if ((mpr->cmdService = mprCreateCmdService(mpr)) == 0) {
         goto error;
     }
 #if BLD_FEATURE_MULTITHREAD
@@ -306,6 +310,49 @@ bool mprIsExiting(MprCtx ctx)
         return 1;
     }
     return mpr->flags & MPR_EXITING;
+}
+
+
+bool mprIsComplete(MprCtx ctx)
+{
+    Mpr *mpr;
+
+    mpr = mprGetMpr(ctx);
+    if (mpr == 0) {
+        return 1;
+    }
+    return (mpr->flags & MPR_EXITING) && mprIsIdle(ctx);
+}
+
+
+/*
+    Just the Mpr services are idle. Use mprIsIdle to determine if the entire process is idle
+ */
+bool mprServicesAreIdle(MprCtx ctx)
+{
+    Mpr     *mpr;
+    
+    mpr = mprGetMpr(ctx);
+    return mprGetListCount(mpr->workerService->busyThreads) == 0 && mprGetListCount(mpr->cmdService->cmds) == 0 && 
+       !(mpr->dispatcher->flags & MPR_DISPATCHER_DO_EVENT);
+}
+
+
+bool mprIsIdle(MprCtx ctx)
+{
+    return (mprGetMpr(ctx)->idleCallback)(ctx);
+}
+
+
+MprIdleCallback mprSetIdleCallback(MprCtx ctx, MprIdleCallback idleCallback)
+{
+    MprIdleCallback old;
+    Mpr             *mpr;
+    
+    mpr = mprGetMpr(ctx);
+    old = mpr->idleCallback;
+    mpr->idleCallback = idleCallback;
+    return old;
 }
 
 

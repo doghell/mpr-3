@@ -82,6 +82,7 @@
     #include    <sys/times.h>
     #include    <sys/utsname.h>
     #include    <sys/uio.h>
+    #include    <sys/un.h>
     #include    <sys/wait.h>
     #include    <unistd.h>
 #if LINUX && !__UCLIBC__
@@ -199,6 +200,7 @@
     #include    <sys/times.h>
     #include    <sys/types.h>
     #include    <sys/uio.h>
+    #include    <sys/un.h>
     #include    <sys/utsname.h>
     #include    <sys/wait.h>
     #include    <unistd.h>
@@ -254,6 +256,7 @@
     #include    <sys/wait.h>
     #include    <sys/mman.h>
     #include    <sys/sysctl.h>
+    #include    <sys/un.h>
     #include    <unistd.h>
     #include    <poll.h>
 #if BLD_FEATURE_FLOATING_POINT
