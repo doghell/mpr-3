@@ -166,9 +166,6 @@ void *mprLookupModuleData(MprCtx ctx, cchar *name)
 }
 
 
-/*
- *  Update the module search path
- */
 void mprSetModuleSearchPath(MprCtx ctx, char *searchPath)
 {
     MprModuleService    *ms;
