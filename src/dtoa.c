@@ -183,6 +183,10 @@
  *  a decimal expansion to decide close cases. This logic is only
  *  used for input more than STRTOD_DIGLIM digits long (default 40).
  */
+#if EMBEDTHIS || 1
+    #include    "buildConfig.h"
+#endif
+#if BLD_FEATURE_FLOATING_POINT
 
 #if EMBEDTHIS || 1
     #include    "mpr.h"
@@ -4267,3 +4271,5 @@ dtoa
 #ifdef __cplusplus
 }
 #endif
+/* EMBEDTHIS */
+#endif /* BLD_FEATURE_FLOATING_POINT */
