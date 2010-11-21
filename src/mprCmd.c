@@ -123,7 +123,7 @@ static int cmdDestructor(MprCmd *cmd)
 #if VXWORKS
     vxCmdDestructor(cmd);
 #endif
-    cs = mprGetMpr(ctx)->cmdService;
+    cs = mprGetMpr(cmd)->cmdService;
     mprLock(cs->mutex);
     mprRemoveItem(cs->cmds, cmd);
     mprUnlock(cs->mutex);
