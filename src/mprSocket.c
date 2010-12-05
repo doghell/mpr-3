@@ -1469,7 +1469,7 @@ int mprGetSocketInfo(MprCtx ctx, cchar *host, int port, int *family, int *protoc
     mprAssert(hostent);
     *addrlen = len;
     *family = hostent->h_addrtype;
-    *protocol = r->ai_protocol;
+    *protocol = 0;
     freehostent(hostent);
 
     mprUnlock(ss->mutex);
@@ -1525,6 +1525,7 @@ int mprGetSocketInfo(MprCtx ctx, cchar *host, int port, int *family, int *protoc
                 mprUnlock(ss->mutex);
                 return MPR_ERR_NOT_FOUND;
             }
+            protocol = AF_INET6;
         }
         memcpy((char*) &sa->sin_addr, (char*) hostent->h_addr_list[0], (size_t) hostent->h_length);
 #endif
@@ -1532,7 +1533,7 @@ int mprGetSocketInfo(MprCtx ctx, cchar *host, int port, int *family, int *protoc
     *addr = (struct sockaddr*) sa;
     *addrlen = sizeof(struct sockaddr_in);
     *family = sa->sin_family;
-    *protocol = r->ai_protocol;
+    *protocol = 0;
     mprUnlock(ss->mutex);
     return 0;
 }
