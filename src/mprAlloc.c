@@ -1274,13 +1274,13 @@ MprAlloc *mprGetAllocStats(MprCtx ctx)
 {
     MprAlloc    *ap;
 
-    ap = &mprGetMpr(ctx)->alloc;
 #if LINUX
     struct rusage   rusage;
     char            buf[1024], *cp;
     int             fd, len;
 
     getrusage(RUSAGE_SELF, &rusage);
+    ap = &mprGetMpr(ctx)->alloc;
     ap->rss = rusage.ru_maxrss;
 
     ap->ram = MAXINT64;
@@ -1302,6 +1302,7 @@ MprAlloc *mprGetAllocStats(MprCtx ctx)
     int             mib[2];
 
     getrusage(RUSAGE_SELF, &rusage);
+    ap = &mprGetMpr(ctx)->alloc;
     ap->rss = rusage.ru_maxrss;
 
     mib[0] = CTL_HW;

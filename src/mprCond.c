@@ -75,6 +75,12 @@ int mprWaitForCond(MprCond *cp, int timeout)
 {
     MprTime     now, expire;
     int         rc;
+#if BLD_UNIX_LIKE
+    struct timespec     waitTill;
+    struct timeval      current;
+    int                 usec;
+#endif
+
     rc = 0;
     if (timeout < 0) {
         timeout = MAXINT;
@@ -83,9 +89,6 @@ int mprWaitForCond(MprCond *cp, int timeout)
     expire = now + timeout;
 
 #if BLD_UNIX_LIKE
-        struct timespec     waitTill;
-        struct timeval      current;
-        int                 usec;
         gettimeofday(&current, NULL);
         usec = current.tv_usec + (timeout % 1000) * 1000;
         waitTill.tv_sec = current.tv_sec + (timeout / 1000) + (usec / 1000000);
@@ -162,9 +165,7 @@ void mprSignalCond(MprCond *cp)
 #elif VXWORKS
         semGive(cp->cv);
 #else
-        int rc;
-        rc = pthread_cond_signal(&cp->cv);
-        mprAssert(rc == 0);
+        pthread_cond_signal(&cp->cv);
 #endif
     }
     mprUnlock(cp->mutex);
@@ -181,10 +182,8 @@ void mprResetCond(MprCond *cp)
     semDelete(cp->cv);
     cp->cv = semCCreate(SEM_Q_PRIORITY, SEM_EMPTY);
 #else
-    int rc = pthread_cond_destroy(&cp->cv);
-    mprAssert(rc == 0);
-    rc = pthread_cond_init(&cp->cv, NULL);
-    mprAssert(rc == 0);
+    pthread_cond_destroy(&cp->cv);
+    pthread_cond_init(&cp->cv, NULL);
 #endif
     mprUnlock(cp->mutex);
 }

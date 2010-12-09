@@ -1454,6 +1454,7 @@ char *mprGetAppPath(MprCtx ctx)
     }
 
 #if MACOSX
+{
     char    path[MPR_MAX_PATH], pbuf[MPR_MAX_PATH];
     uint    size;
     int     len;
@@ -1470,8 +1471,10 @@ char *mprGetAppPath(MprCtx ctx)
     pbuf[len] = '\0';
     mpr->appPath = mprGetAbsPath(ctx, pbuf);
     return mprStrdup(ctx, mpr->appPath);
+}
 
 #elif FREEBSD 
+{
     char    pbuf[MPR_MAX_STRING];
     int     len;
 
@@ -1482,8 +1485,10 @@ char *mprGetAppPath(MprCtx ctx)
      pbuf[len] = '\0';
      mpr->appPath = mprGetAbsPath(ctx, pbuf);
      return mprStrdup(ctx, mpr->appPath);
+}
 
 #elif BLD_UNIX_LIKE 
+{
     char    pbuf[MPR_MAX_STRING], *path;
     int     len;
 
@@ -1501,7 +1506,7 @@ char *mprGetAppPath(MprCtx ctx)
     mprFree(path);
     mpr->appPath = mprGetAbsPath(ctx, pbuf); 
     return mprStrdup(ctx, mpr->appPath);
-
+}
 #elif BLD_WIN_LIKE
 {
     char    path[MPR_MAX_PATH];

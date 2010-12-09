@@ -19,6 +19,9 @@ static int destroySpinLock(MprSpin *lock);
 MprMutex *mprCreateLock(MprCtx ctx)
 {
     MprMutex    *lock;
+#if BLD_UNIX_LIKE
+    pthread_mutexattr_t attr;
+#endif
 
     mprAssert(ctx);
 
@@ -28,7 +31,6 @@ MprMutex *mprCreateLock(MprCtx ctx)
     }
 
 #if BLD_UNIX_LIKE
-    pthread_mutexattr_t attr;
     pthread_mutexattr_init(&attr);
     pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE_NP);
     pthread_mutex_init(&lock->cs, &attr);
@@ -55,8 +57,6 @@ MprMutex *mprCreateLock(MprCtx ctx)
 
 MprMutex *mprInitLock(MprCtx ctx, MprMutex *lock)
 {
-    mprAssert(ctx);
-
 #if BLD_UNIX_LIKE
     pthread_mutexattr_t attr;
     pthread_mutexattr_init(&attr);
@@ -125,6 +125,9 @@ bool mprTryLock(MprMutex *lock)
 MprSpin *mprCreateSpinLock(MprCtx ctx)
 {
     MprSpin    *lock;
+#if BLD_UNIX_LIKE && !MACOSX
+    pthread_mutexattr_t attr;
+#endif
 
     mprAssert(ctx);
 
@@ -143,7 +146,6 @@ MprSpin *mprCreateSpinLock(MprCtx ctx)
     pthread_spin_init(&lock->cs, 0);
 
 #elif BLD_UNIX_LIKE
-    pthread_mutexattr_t attr;
     pthread_mutexattr_init(&attr);
     pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE_NP);
     pthread_mutex_init(&lock->cs, &attr);
@@ -177,6 +179,10 @@ MprSpin *mprCreateSpinLock(MprCtx ctx)
  */
 MprSpin *mprInitSpinLock(MprCtx ctx, MprSpin *lock)
 {
+#if BLD_UNIX_LIKE && !MACOSX
+    pthread_mutexattr_t attr;
+#endif
+
     mprAssert(ctx);
 
 #if USE_MPR_LOCK
@@ -189,7 +195,6 @@ MprSpin *mprInitSpinLock(MprCtx ctx, MprSpin *lock)
     pthread_spin_init(&lock->cs, 0);
 
 #elif BLD_UNIX_LIKE
-    pthread_mutexattr_t attr;
     pthread_mutexattr_init(&attr);
     pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE_NP);
     pthread_mutex_init(&lock->cs, &attr);
