@@ -10,7 +10,6 @@
 		breakpoints = (
 			C9688408102F78C2009D3F37 /* mprLog.c:21 */,
 			C92034D110522C9E00FCB35D /* mprHttp.c:1386 */,
-			C9A7BE31105B0FC500665F32 /* mprPollWait.c:221 */,
 			C913BA131075C2C1005ADAB8 /* mprHttp.c:1007 */,
 			C919DA01107FE3B700897352 /* mprHttp.c:638 */,
 			C919DA03107FE3BA00897352 /* mprHttp.c:694 */,
@@ -19,14 +18,15 @@
 			C98153B110A3A9A1002B36F1 /* mprHttp.c:1573 */,
 			C98153B510A3A9ED002B36F1 /* mprHttp.c:670 */,
 			C98153B710A3AA07002B36F1 /* mprSocket.c:876 */,
-			C94A48661108F7AA00615A33 /* testCmd.c:36 */,
-			C94A486B1108F7ED00615A33 /* testCmd.c:131 */,
 			C94A48731108F85E00615A33 /* testCmd.c:151 */,
+			C940B12612B33A7100B75D63 /* testCmd.c:144 */,
+			C940B13612B33AA700B75D63 /* testCmd.c:36 */,
+			C940B14C12B33AEF00B75D63 /* testCmd.c:58 */,
 		);
 		codeSenseManager = C90A19E10FD6DC5E006A9E86 /* Code sense */;
 		executables = (
-			C90A1AC20FD6E28B006A9E86 /* http */,
 			C90A1ACF0FD6E2A4006A9E86 /* testMpr */,
+			C940B11C12B33A4200B75D63 /* http */,
 		);
 		ignoreBreakpointsInProjectsDict = {
 		};
@@ -61,7 +61,7 @@
 				PBXFileTableDataSourceColumnWidthsKey = (
 					22,
 					300,
-					913,
+					912.58349609375,
 				);
 				PBXFileTableDataSourceColumnsKey = (
 					PBXExecutablesDataSource_ActiveFlagID,
@@ -74,7 +74,7 @@
 				PBXFileTableDataSourceColumnSortingKey = PBXFileDataSource_Filename_ColumnID;
 				PBXFileTableDataSourceColumnWidthsKey = (
 					20,
-					1025,
+					10,
 					20,
 					48,
 					43,
@@ -113,14 +113,14 @@
 					PBXFileDataSource_Warnings_ColumnID,
 				);
 			};
-			PBXPerProjectTemplateStateSaveDate = 287007971;
-			PBXWorkspaceStateSaveDate = 287007971;
+			PBXPerProjectTemplateStateSaveDate = 313735746;
+			PBXWorkspaceStateSaveDate = 313735746;
 		};
 		perUserProjectItems = {
-			C94A48551108F0E900615A33 /* PBXTextBookmark */ = C94A48551108F0E900615A33 /* PBXTextBookmark */;
-			C94AD11D111B64ED00AA6192 /* PBXTextBookmark */ = C94AD11D111B64ED00AA6192 /* PBXTextBookmark */;
+			C940B12A12B33A7200B75D63 /* PBXTextBookmark */ = C940B12A12B33A7200B75D63 /* PBXTextBookmark */;
+			C940B14712B33AC100B75D63 /* PBXTextBookmark */ = C940B14712B33AC100B75D63 /* PBXTextBookmark */;
+			C940B15012B33B8A00B75D63 /* PBXTextBookmark */ = C940B15012B33B8A00B75D63 /* PBXTextBookmark */;
 			C94AD11F111B654300AA6192 /* PBXTextBookmark */ = C94AD11F111B654300AA6192 /* PBXTextBookmark */;
-			C94AD120111B654300AA6192 /* PBXTextBookmark */ = C94AD120111B654300AA6192 /* PBXTextBookmark */;
 		};
 		sourceControlManager = C90A19E00FD6DC5E006A9E86 /* Source Control */;
 		userBuildSettings = {
@@ -287,9 +287,9 @@
 	};
 	C90A1A2C0FD6DD4C006A9E86 /* mprPollWait.c */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {956, 5340}}";
-			sepNavSelRange = "{1743, 0}";
-			sepNavVisRange = "{1195, 969}";
+			sepNavIntBoundsRect = "{{0, 0}, {1068, 5805}}";
+			sepNavSelRange = "{6275, 0}";
+			sepNavVisRange = "{5546, 1202}";
 			sepNavWindowFrame = "{{84, 34}, {1243, 1076}}";
 		};
 	};
@@ -362,9 +362,9 @@
 	};
 	C90A1A6C0FD6DF05006A9E86 /* pcre_chartables.c */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {1184, 3075}}";
+			sepNavIntBoundsRect = "{{0, 0}, {1068, 3045}}";
 			sepNavSelRange = "{1332, 0}";
-			sepNavVisRange = "{0, 2509}";
+			sepNavVisRange = "{0, 2054}";
 			sepNavWindowFrame = "{{15, 497}, {1243, 1076}}";
 		};
 	};
@@ -406,62 +406,8 @@
 	C90A1AC00FD6E28B006A9E86 /* http */ = {
 		activeExec = 0;
 		executables = (
-			C90A1AC20FD6E28B006A9E86 /* http */,
+			C940B11C12B33A4200B75D63 /* http */,
 		);
-	};
-	C90A1AC20FD6E28B006A9E86 /* http */ = {
-		isa = PBXExecutable;
-		activeArgIndices = (
-			NO,
-			NO,
-			YES,
-		);
-		argumentStrings = (
-			"--cookie '-ejs-session-=abcdef' 4100/bug.ejs",
-			"--log stdout:4 --chunk 1000 --put /tmp/big.txt 4100/tmp/big.tmp",
-			"--showHeaders --upload --form \"server=`hostname`&key=1246766521\" /tmp/mob.dmg 4100/upload.ejs",
-		);
-		autoAttachOnCrash = 1;
-		breakpointsEnabled = 1;
-		configStateDict = {
-			"PBXLSLaunchAction-0" = {
-				PBXLSLaunchAction = 0;
-				PBXLSLaunchStartAction = 1;
-				PBXLSLaunchStdioStyle = 2;
-				PBXLSLaunchStyle = 0;
-				class = PBXLSRunLaunchConfig;
-				commandLineArgs = (
-				);
-				displayName = "Executable Runner";
-				environment = {
-				};
-				identifier = com.apple.Xcode.launch.runConfig;
-				remoteHostInfo = "";
-				startActionInfo = "";
-			};
-		};
-		customDataFormattersEnabled = 1;
-		dataTipCustomDataFormattersEnabled = 1;
-		dataTipShowTypeColumn = 1;
-		dataTipSortType = 0;
-		debuggerPlugin = GDBDebugging;
-		disassemblyDisplayState = 0;
-		dylibVariantSuffix = "";
-		enableDebugStr = 1;
-		environmentEntries = (
-		);
-		executableSystemSymbolLevel = 0;
-		executableUserSymbolLevel = 0;
-		libgmallocEnabled = 0;
-		name = http;
-		savedGlobals = {
-		};
-		showTypeColumn = 0;
-		sourceDirectories = (
-		);
-		startupPath = /Users/mob/hg/mpr/src;
-		variableFormatDictionary = {
-		};
 	};
 	C90A1ACD0FD6E2A4006A9E86 /* testMpr */ = {
 		activeExec = 0;
@@ -524,7 +470,7 @@
 		showTypeColumn = 0;
 		sourceDirectories = (
 		);
-		startupPath = /Users/mob/hg/mpr.stable/test;
+		startupPath = /Users/mob/git/mpr.stable/test;
 		variableFormatDictionary = {
 			"flags-int-cmdCallback" = 1;
 			"flags-int-ioProc" = 1;
@@ -541,9 +487,9 @@
 	};
 	C90A1AE50FD6E319006A9E86 /* testCmd.c */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {1068, 4410}}";
-			sepNavSelRange = "{8238, 0}";
-			sepNavVisRange = "{2894, 1151}";
+			sepNavIntBoundsRect = "{{0, 0}, {1203, 4320}}";
+			sepNavSelRange = "{8028, 0}";
+			sepNavVisRange = "{472, 1038}";
 			sepNavWindowFrame = "{{38, 476}, {1243, 1076}}";
 		};
 	};
@@ -630,7 +576,7 @@
 		ignoreCount = 0;
 		lineNumber = 1007;
 		location = libmpr.dylib;
-		modificationTime = 285800536.095029;
+		modificationTime = 313735902.326049;
 		originalNumberOfMultipleMatches = 1;
 		state = 1;
 	};
@@ -648,7 +594,7 @@
 		ignoreCount = 0;
 		lineNumber = 638;
 		location = libmpr.dylib;
-		modificationTime = 285800536.114423;
+		modificationTime = 313735902.343469;
 		originalNumberOfMultipleMatches = 1;
 		state = 1;
 	};
@@ -666,7 +612,7 @@
 		ignoreCount = 0;
 		lineNumber = 694;
 		location = libmpr.dylib;
-		modificationTime = 285800536.148659;
+		modificationTime = 313735902.354451;
 		originalNumberOfMultipleMatches = 1;
 		state = 1;
 	};
@@ -684,7 +630,7 @@
 		ignoreCount = 0;
 		lineNumber = 1174;
 		location = libmpr.dylib;
-		modificationTime = 285800536.17111;
+		modificationTime = 313735902.379781;
 		originalNumberOfMultipleMatches = 1;
 		state = 1;
 	};
@@ -701,9 +647,9 @@
 		hitCount = 0;
 		ignoreCount = 0;
 		lineNumber = 772;
-		modificationTime = 285800535.9219239;
+		modificationTime = 313736073.87041;
 		originalNumberOfMultipleMatches = 1;
-		state = 0;
+		state = 1;
 	};
 	C92034D110522C9E00FCB35D /* mprHttp.c:1386 */ = {
 		isa = PBXFileBreakpoint;
@@ -719,21 +665,66 @@
 		ignoreCount = 0;
 		lineNumber = 1386;
 		location = libmpr.dylib;
-		modificationTime = 285800536.0561601;
+		modificationTime = 313735902.277645;
 		originalNumberOfMultipleMatches = 1;
 		state = 1;
 	};
-	C94A48551108F0E900615A33 /* PBXTextBookmark */ = {
+	C940B11C12B33A4200B75D63 /* http */ = {
+		isa = PBXExecutable;
+		activeArgIndices = (
+		);
+		argumentStrings = (
+		);
+		autoAttachOnCrash = 1;
+		breakpointsEnabled = 0;
+		configStateDict = {
+		};
+		customDataFormattersEnabled = 1;
+		dataTipCustomDataFormattersEnabled = 1;
+		dataTipShowTypeColumn = 1;
+		dataTipSortType = 0;
+		debuggerPlugin = GDBDebugging;
+		disassemblyDisplayState = 0;
+		enableDebugStr = 1;
+		environmentEntries = (
+		);
+		executableSystemSymbolLevel = 0;
+		executableUserSymbolLevel = 0;
+		libgmallocEnabled = 0;
+		name = http;
+		showTypeColumn = 0;
+		sourceDirectories = (
+		);
+	};
+	C940B12612B33A7100B75D63 /* testCmd.c:144 */ = {
+		isa = PBXFileBreakpoint;
+		actions = (
+		);
+		breakpointStyle = 0;
+		continueAfterActions = 0;
+		countType = 0;
+		delayBeforeContinue = 0;
+		fileReference = C90A1AE50FD6E319006A9E86 /* testCmd.c */;
+		functionName = "testWithData()";
+		hitCount = 1;
+		ignoreCount = 0;
+		lineNumber = 144;
+		location = testMpr;
+		modificationTime = 313735922.593401;
+		originalNumberOfMultipleMatches = 1;
+		state = 1;
+	};
+	C940B12A12B33A7200B75D63 /* PBXTextBookmark */ = {
 		isa = PBXTextBookmark;
 		fRef = C90A1A6C0FD6DF05006A9E86 /* pcre_chartables.c */;
 		name = "pcre_chartables.c: 29";
 		rLen = 0;
 		rLoc = 1332;
 		rType = 0;
-		vrLen = 644;
-		vrLoc = 737;
+		vrLen = 566;
+		vrLoc = 814;
 	};
-	C94A48661108F7AA00615A33 /* testCmd.c:36 */ = {
+	C940B13612B33AA700B75D63 /* testCmd.c:36 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
 		);
@@ -747,11 +738,21 @@
 		ignoreCount = 0;
 		lineNumber = 36;
 		location = testMpr;
-		modificationTime = 285800536.750296;
+		modificationTime = 313735902.823696;
 		originalNumberOfMultipleMatches = 1;
 		state = 1;
 	};
-	C94A486B1108F7ED00615A33 /* testCmd.c:131 */ = {
+	C940B14712B33AC100B75D63 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = C90A1AE50FD6E319006A9E86 /* testCmd.c */;
+		name = "testCmd.c: 288";
+		rLen = 0;
+		rLoc = 8028;
+		rType = 0;
+		vrLen = 1204;
+		vrLoc = 399;
+	};
+	C940B14C12B33AEF00B75D63 /* testCmd.c:58 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
 		);
@@ -760,14 +761,24 @@
 		countType = 0;
 		delayBeforeContinue = 0;
 		fileReference = C90A1AE50FD6E319006A9E86 /* testCmd.c */;
-		functionName = "testWithData()";
-		hitCount = 1;
+		functionName = "withDataCallback()";
+		hitCount = 0;
 		ignoreCount = 0;
-		lineNumber = 131;
+		lineNumber = 58;
 		location = testMpr;
-		modificationTime = 285800538.049453;
+		modificationTime = 313735919.774304;
 		originalNumberOfMultipleMatches = 1;
 		state = 1;
+	};
+	C940B15012B33B8A00B75D63 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = C90A1AE50FD6E319006A9E86 /* testCmd.c */;
+		name = "testCmd.c: 288";
+		rLen = 0;
+		rLoc = 8028;
+		rType = 0;
+		vrLen = 1206;
+		vrLoc = 472;
 	};
 	C94A48731108F85E00615A33 /* testCmd.c:151 */ = {
 		isa = PBXFileBreakpoint;
@@ -783,19 +794,9 @@
 		ignoreCount = 0;
 		lineNumber = 151;
 		location = testMpr;
-		modificationTime = 285800542.6678621;
+		modificationTime = 313735934.298335;
 		originalNumberOfMultipleMatches = 1;
 		state = 1;
-	};
-	C94AD11D111B64ED00AA6192 /* PBXTextBookmark */ = {
-		isa = PBXTextBookmark;
-		fRef = C90A1AE50FD6E319006A9E86 /* testCmd.c */;
-		name = "testCmd.c: 294";
-		rLen = 0;
-		rLoc = 8238;
-		rType = 0;
-		vrLen = 1161;
-		vrLoc = 2969;
 	};
 	C94AD11F111B654300AA6192 /* PBXTextBookmark */ = {
 		isa = PBXTextBookmark;
@@ -806,16 +807,6 @@
 		rType = 0;
 		vrLen = 334;
 		vrLoc = 839;
-	};
-	C94AD120111B654300AA6192 /* PBXTextBookmark */ = {
-		isa = PBXTextBookmark;
-		fRef = C90A1AE50FD6E319006A9E86 /* testCmd.c */;
-		name = "testCmd.c: 294";
-		rLen = 0;
-		rLoc = 8238;
-		rType = 0;
-		vrLen = 485;
-		vrLoc = 3644;
 	};
 	C9688408102F78C2009D3F37 /* mprLog.c:21 */ = {
 		isa = PBXFileBreakpoint;
@@ -831,7 +822,7 @@
 		ignoreCount = 0;
 		lineNumber = 21;
 		location = libmpr.dylib;
-		modificationTime = 285800536.043438;
+		modificationTime = 313735902.266248;
 		originalNumberOfMultipleMatches = 1;
 		state = 1;
 	};
@@ -849,7 +840,7 @@
 		ignoreCount = 0;
 		lineNumber = 1573;
 		location = libmpr.dylib;
-		modificationTime = 285800536.1968819;
+		modificationTime = 313735902.397646;
 		originalNumberOfMultipleMatches = 1;
 		state = 1;
 	};
@@ -867,7 +858,7 @@
 		ignoreCount = 0;
 		lineNumber = 670;
 		location = libmpr.dylib;
-		modificationTime = 285800536.212219;
+		modificationTime = 313735902.408523;
 		originalNumberOfMultipleMatches = 1;
 		state = 1;
 	};
@@ -885,25 +876,7 @@
 		ignoreCount = 0;
 		lineNumber = 876;
 		location = libmpr.dylib;
-		modificationTime = 285800536.2413819;
-		originalNumberOfMultipleMatches = 1;
-		state = 1;
-	};
-	C9A7BE31105B0FC500665F32 /* mprPollWait.c:221 */ = {
-		isa = PBXFileBreakpoint;
-		actions = (
-		);
-		breakpointStyle = 0;
-		continueAfterActions = 0;
-		countType = 0;
-		delayBeforeContinue = 0;
-		fileReference = C90A1A2C0FD6DD4C006A9E86 /* mprPollWait.c */;
-		functionName = "serviceIO()";
-		hitCount = 0;
-		ignoreCount = 0;
-		lineNumber = 221;
-		location = libmpr.dylib;
-		modificationTime = 285800536.082224;
+		modificationTime = 313735902.434464;
 		originalNumberOfMultipleMatches = 1;
 		state = 1;
 	};

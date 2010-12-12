@@ -255,7 +255,6 @@
 		C90A1A870FD6DF4D006A9E86 /* mprOpenssl.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = mprOpenssl.c; path = ../../../src/ssl/mprOpenssl.c; sourceTree = SOURCE_ROOT; };
 		C90A1A880FD6DF4D006A9E86 /* mprSsl.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = mprSsl.c; path = ../../../src/ssl/mprSsl.c; sourceTree = SOURCE_ROOT; };
 		C90A1A8F0FD6DFC2006A9E86 /* pcre.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pcre.h; path = ../../../src/include/pcre.h; sourceTree = SOURCE_ROOT; };
-		C90A1AC10FD6E28B006A9E86 /* http */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; name = http; path = "/Users/mob/hg/mpr.stable/projects/MACOSX/mpr-dynamic/build/Debug/http"; sourceTree = "<absolute>"; };
 		C90A1ACE0FD6E2A4006A9E86 /* testMpr */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = testMpr; sourceTree = BUILT_PRODUCTS_DIR; };
 		C90A1ADF0FD6E2EF006A9E86 /* charGen.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = charGen.c; path = ../../../src/utils/charGen.c; sourceTree = SOURCE_ROOT; };
 		C90A1AE00FD6E2EF006A9E86 /* http.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = http.c; path = ../../../src/utils/http.c; sourceTree = SOURCE_ROOT; };
@@ -276,6 +275,7 @@
 		C90A1AF10FD6E319006A9E86 /* testSprintf.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = testSprintf.c; path = ../../../src/test/testSprintf.c; sourceTree = SOURCE_ROOT; };
 		C90A1AF20FD6E319006A9E86 /* testTime.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = testTime.c; path = ../../../src/test/testTime.c; sourceTree = SOURCE_ROOT; };
 		C90A1AF30FD6E319006A9E86 /* testUnicode.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = testUnicode.c; path = ../../../src/test/testUnicode.c; sourceTree = SOURCE_ROOT; };
+		C940B11B12B33A4200B75D63 /* http */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; name = http; path = build/Debug/http; sourceTree = "<group>"; };
 		C94A47E2110809C100615A33 /* dtoa.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = dtoa.c; path = ../../../src/dtoa.c; sourceTree = SOURCE_ROOT; };
 		C9B21F641011D0DD001053BB /* testThread.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = testThread.c; path = ../../../src/test/testThread.c; sourceTree = SOURCE_ROOT; };
 		C9F8E4B6102B659C00492AB2 /* libmatrixsslstatic.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmatrixsslstatic.a; path = ../../../lib/libmatrixsslstatic.a; sourceTree = SOURCE_ROOT; };
@@ -407,6 +407,7 @@
 				C90A19F70FD6DCC8006A9E86 /* libpcre.dylib */,
 				C90A19FE0FD6DCD8006A9E86 /* libmprssl.dylib */,
 				C90A1ACE0FD6E2A4006A9E86 /* testMpr */,
+				C940B11B12B33A4200B75D63 /* http */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -579,7 +580,7 @@
 			);
 			name = http;
 			productName = http;
-			productReference = C90A1AC10FD6E28B006A9E86 /* http */;
+			productReference = C940B11B12B33A4200B75D63 /* http */;
 			productType = "com.apple.product-type.tool";
 		};
 		C90A1ACD0FD6E2A4006A9E86 /* testMpr */ = {
@@ -608,7 +609,14 @@
 			isa = PBXProject;
 			buildConfigurationList = C90A19DF0FD6DC5E006A9E86 /* Build configuration list for PBXProject "mpr-dynamic" */;
 			compatibilityVersion = "Xcode 2.4";
+			developmentRegion = English;
 			hasScannedForEncodings = 0;
+			knownRegions = (
+				English,
+				Japanese,
+				French,
+				German,
+			);
 			mainGroup = C90A19DA0FD6DC5E006A9E86;
 			productRefGroup = C90A19EF0FD6DCAD006A9E86 /* Products */;
 			projectDirPath = "";
