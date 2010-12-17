@@ -2,12 +2,13 @@
 #   PHP
 #
 defineComponent() {
-	local path name search ver imports libs iflags extensions file resolved
+	local path name search ver imports libs iflags
 
     if [ $KIND = "BUILD" -a $BLD_CROSS = 1 ] ; then
         echo "only used as a host component"
         return 0
     fi
+
     name="php"
     path=$1
     search="."
@@ -20,41 +21,26 @@ defineComponent() {
 	fi
 
     if [ $BLD_HOST_OS = WIN ] ; then
-        extensions="dll lib"
         if [ -x $path/Release_TS ] ; then
-            imports="$path/Release_TS/php5ts"
+            imports="$path/Release_TS/php5ts.dll"
         else 
-            imports="$path/Release/php5"
+            imports="$path/Release/php5.dll"
         fi
         libs="php5"
     elif [ $BLD_HOST_OS = MACOSX ] ; then
-        extensions="a dylib"
-        imports="$path/libs/libphp5"
+        imports="$path/libs/libphp5.dylib"
         libs="php5"
     else
-        extensions="so a"
-        imports="$path/libs/libphp5"
+        imports="$path/libs/libphp5.so"
         libs="php5"
     fi
 
-    resolved=
-    for f in $imports
+    for i in $imports
     do
-        for ext in $extensions
-        do
-            file=${f}.${ext}
-            if [ -f "$file" ] ; then 
-                break
-            fi
-        done
-        if [ ! -f "$file" ] ; then 
-            warnComponent $name "Can't locate $file"
-            return
-        fi
-        resolved="${resolved} ${file}"
+        [ ! -f "$i" ] && return
     done
 
     iflags="-I$path -I$path/main -I$path/Zend -I$path/TSRM"
-    configureComponent --path "$path" --dependencies "mpr" --imports "$resolved" --withlibs "$libs" \
-        --libs "$libs" --iflags "$iflags" $name
+    configureComponent --path "$path" --dependencies "mpr" --imports "$imports" \
+        --withlibs "$libs" --libs "$libs" --iflags "$iflags" $name
 }
