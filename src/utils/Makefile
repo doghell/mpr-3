@@ -30,5 +30,5 @@ $(BLD_BIN_DIR)/makerom$(BLD_EXE): $(BLD_OBJ_DIR)/makerom$(BLD_OBJ) $(BLD_LIB_DIR
 #   tab-width: 4
 #   c-basic-offset: 4
 #   End:
-#   vim: sw=4 ts=4
+#   vim: sw=4 ts=4 noexpandtab
 #
