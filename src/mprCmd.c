@@ -665,7 +665,8 @@ void mprPollCmdPipes(MprCmd *cmd, int timeout)
 #endif /* BLD_WIN_LIKE && !WINCE */
 
 /*
- *  Wait for a command to complete. Return 0 if successful. This will call mprReapCmd if requried.
+ *  Wait for a command to complete. Return 0 if the command completed, otherwise return MPR_ERR_TIMEOUT. 
+ *  This will call mprReapCmd if requried.
  */
 int mprWaitForCmd(MprCmd *cmd, int timeout)
 {
@@ -698,7 +699,7 @@ int mprWaitForCmd(MprCmd *cmd, int timeout)
     } while (mprGetElapsedTime(cmd, mark) <= timeout);
 
     if (!complete) {
-        mprLog(cmd, 7, "cmd: mprWaitForCmd: timeout waiting to collect exit status");
+        mprLog(cmd, 7, "cmd: mprWaitForCmd: timeout waiting for command to complete");
         return MPR_ERR_TIMEOUT;
     }
     if (cmd->pid) {
@@ -790,11 +791,11 @@ int mprReapCmd(MprCmd *cmd, int timeout)
             break;
         }
 #endif
-        /* Prevent busy waiting */
-        mprSleep(cmd, 10);
         if (mprGetElapsedTime(cmd, mark) > timeout) {
             break;
         }
+        /* Prevent busy waiting */
+        mprSleep(cmd, 10);
     }
     return (cmd->pid == 0) ? 0 : 1;
 }
