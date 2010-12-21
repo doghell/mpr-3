@@ -60,3 +60,11 @@ $(MATRIXSSL_IMPORTS): $(patsubst %,$(BLD_MATRIXSSL_IMP_LIBPATH)/%, $(BLD_MATRIXS
 
 cleanExtra:
 	rm -f *.c *.h
+
+#
+#   Local variables:
+#   tab-width: 4
+#   c-basic-offset: 4
+#   End:
+#   vim: sw=4 ts=4
+#

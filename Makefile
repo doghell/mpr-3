@@ -128,3 +128,11 @@ uclibc:
 	BUILD_LD=/usr/bin/cc \
 	./configure --host=i386-pc-linux 
 	[ -f .makedep ] && make clean >/dev/null ; true
+
+#
+#   Local variables:
+#   tab-width: 4
+#   c-basic-offset: 4
+#   End:
+#   vim: sw=4 ts=4
+#

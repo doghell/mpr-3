@@ -55,3 +55,11 @@ $(BLD_LIB_DIR)/libmprssl$(BLD_LIB): $(SSL_OBJECTS) $(BLD_LIB_DIR)/libmpr$(BLD_LI
 
 $(BLD_LIB_DIR)/libpcre$(BLD_LIB): $(REG_OBJECTS) $(BLD_LIB_DIR)/libmpr$(BLD_LIB)
 	bld --library $(BLD_LIB_DIR)/libpcre $(REG_OBJECTS)
+
+#
+#   Local variables:
+#   tab-width: 4
+#   c-basic-offset: 4
+#   End:
+#   vim: sw=4 ts=4
+#

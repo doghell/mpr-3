@@ -24,3 +24,11 @@ endif
 opensslParams:
 	openssl dhparam -out dh512.pem -C -2 512 >dh.c
 	openssl dhparam -out dh1024.pem -C -2 1024 >>dh.c
+
+#
+#   Local variables:
+#   tab-width: 4
+#   c-basic-offset: 4
+#   End:
+#   vim: sw=4 ts=4
+#

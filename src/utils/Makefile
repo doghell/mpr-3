@@ -24,3 +24,11 @@ $(BLD_BIN_DIR)/http$(BLD_EXE): $(BLD_OBJ_DIR)/http$(BLD_OBJ) $(BLD_LIB_DIR)/libm
 
 $(BLD_BIN_DIR)/makerom$(BLD_EXE): $(BLD_OBJ_DIR)/makerom$(BLD_OBJ) $(BLD_LIB_DIR)/libmpr$(BLD_LIB)
 	@bld --exe $(BLD_BIN_DIR)/makerom$(BLD_EXE) --search "$(BLD_MPR_LIBPATHS)" --libs "$(BLD_MPR_LIBS)" makerom
+
+#
+#   Local variables:
+#   tab-width: 4
+#   c-basic-offset: 4
+#   End:
+#   vim: sw=4 ts=4
+#
