@@ -82,7 +82,7 @@ static TimeToken fullDays[] = {
 };
 
 /*
-    Make origin 1 to correspond to user date entries 10/28/2010
+    Make origin 1 to correspond to user date entries 10/28/2011
  */
 static TimeToken months[] = {
     { "jan",  1 | TOKEN_MONTH },
@@ -988,7 +988,7 @@ char *mprFormatTime(MprCtx ctx, cchar *fmt, struct tm *tp)
             mprPutCharToBuf(buf, '%');
             break;
 
-        case '+' :                                      /* date (Mon May 18 23:29:50 PDT 2010) */
+        case '+' :                                      /* date (Mon May 18 23:29:50 PDT 2011) */
             mprPutStringToBuf(buf, abbrevDay[tp->tm_wday]);
             mprPutCharToBuf(buf, ' ');
             mprPutStringToBuf(buf, abbrevMonth[tp->tm_mon]);
@@ -1395,7 +1395,7 @@ int mprParseTime(MprCtx ctx, MprTime *time, cchar *dateString, int zoneFlags, st
     while (token && *token) {
         if (allDigits(token)) {
             /*
-                Parse either day of month or year. Priority to day of month. Format: <29> Jan <15> <2010>
+                Parse either day of month or year. Priority to day of month. Format: <29> Jan <15> <2011>
              */ 
             value = mprAtoi(token, 10);
             if (value > 3000) {
@@ -1483,7 +1483,7 @@ int mprParseTime(MprCtx ctx, MprTime *time, cchar *dateString, int zoneFlags, st
             }
             if (dateSep) {
                 /*
-                    Date:  07/28/2010, 07/28/08, Jan/28/2010, Jaunuary-28-2010, 28-jan-2010
+                    Date:  07/28/2011, 07/28/08, Jan/28/2011, Jaunuary-28-2011, 28-jan-2011
                     Support order: dd/mm/yy, mm/dd/yy and yyyy/mm/dd
                     Support separators "/", ".", "-"
                  */
@@ -1728,8 +1728,8 @@ int gettimeofday(struct timeval *tv, struct timezone *tz)
 /*
     @copy   default
 
-    Copyright (c) Embedthis Software LLC, 2003-2010. All Rights Reserved.
-    Copyright (c) Michael O'Brien, 1993-2010. All Rights Reserved.
+    Copyright (c) Embedthis Software LLC, 2003-2011. All Rights Reserved.
+    Copyright (c) Michael O'Brien, 1993-2011. All Rights Reserved.
 
     This software is distributed under commercial and open source licenses.
     You may use the GPL open source license described below or you may acquire
@@ -1751,6 +1751,12 @@ int gettimeofday(struct timeval *tv, struct timezone *tz)
     acquire a commercial license to use this software. Commercial licenses
     for this software and support services are available from Embedthis
     Software at http://www.embedthis.com
+
+    Local variables:
+    tab-width: 4
+    c-basic-offset: 4
+    End:
+    vim: sw=8 ts=8 expandtab
 
     @end
  */

@@ -1,7 +1,7 @@
 #
 #	Makefile for the all-in-one MPR distribution
 #
-#	Copyright (c) Embedthis Software LLC, 2003-2010. All Rights Reserved.
+#	Copyright (c) Embedthis Software LLC, 2003-2011. All Rights Reserved.
 #
 
 include			.makedep

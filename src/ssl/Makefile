@@ -1,7 +1,7 @@
 #
 #	Makefile to build the SSL support
 #
-#	Copyright (c) Embedthis Software LLC, 2003-2010. All Rights Reserved.
+#	Copyright (c) Embedthis Software LLC, 2003-2011. All Rights Reserved.
 #
 
 MAKE_IFLAGS		= $(BLD_OPENSSL_IFLAGS) $(BLD_MATRIXSSL_IFLAGS)
