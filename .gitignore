@@ -38,3 +38,7 @@ lib/*.so
 *.so
 lib/*.so.*
 */i386-wrs-vxworks
+projects/MACOSX/mpr-dynamic/build
+*.pbxuser
+*.perspectivev3
+*.pbxproj

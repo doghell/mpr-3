@@ -275,7 +275,7 @@
 		C90A1AF10FD6E319006A9E86 /* testSprintf.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = testSprintf.c; path = ../../../src/test/testSprintf.c; sourceTree = SOURCE_ROOT; };
 		C90A1AF20FD6E319006A9E86 /* testTime.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = testTime.c; path = ../../../src/test/testTime.c; sourceTree = SOURCE_ROOT; };
 		C90A1AF30FD6E319006A9E86 /* testUnicode.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = testUnicode.c; path = ../../../src/test/testUnicode.c; sourceTree = SOURCE_ROOT; };
-		C940B11B12B33A4200B75D63 /* http */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; name = http; path = build/Debug/http; sourceTree = "<group>"; };
+		C940B11B12B33A4200B75D63 /* http */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = http; sourceTree = BUILT_PRODUCTS_DIR; };
 		C94A47E2110809C100615A33 /* dtoa.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = dtoa.c; path = ../../../src/dtoa.c; sourceTree = SOURCE_ROOT; };
 		C9B21F641011D0DD001053BB /* testThread.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = testThread.c; path = ../../../src/test/testThread.c; sourceTree = SOURCE_ROOT; };
 		C9F8E4B6102B659C00492AB2 /* libmatrixsslstatic.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmatrixsslstatic.a; path = ../../../lib/libmatrixsslstatic.a; sourceTree = SOURCE_ROOT; };
