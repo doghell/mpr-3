@@ -935,8 +935,12 @@ static int httpReadEvent(MprHttp *http)
         http->keepAlive = 0;
         if (http->state != MPR_HTTP_STATE_COMPLETE && http->response->contentLength == 0) {
             mprLog(http, 5, "Socket end of file from server, rc %d, errno %d", nbytes, errno);
-            http->state = MPR_HTTP_STATE_COMPLETE;
-            processResponse(http, buf, nbytes);
+            if (resp->flags & MPR_HTTP_RESP_CHUNKED) {
+                badRequest(http, "Communications error");
+            } else {
+                http->state = MPR_HTTP_STATE_COMPLETE;
+                processResponse(http, buf, nbytes);
+            }
         } else {
             badRequest(http, "Communications error");
         }

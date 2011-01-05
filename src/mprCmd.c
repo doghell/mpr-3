@@ -210,6 +210,12 @@ void mprCloseCmdFd(MprCmd *cmd, int channel)
 }
 
 
+int mprIsCmdComplete(MprCmd *cmd)
+{
+    return cmd->eofCount >= cmd->requiredEof;
+}
+
+
 /*
  *  Default callback routine for the mprRunCmd routines. Uses may supply their own callback instead of this routine. 
  *  The callback is run whenever there is I/O to read/write to the CGI gateway.
@@ -711,8 +717,8 @@ int mprWaitForCmd(MprCmd *cmd, int timeout)
 
 
 /*
- *  Collect the child's exit status. The initiating thread must do this on some operating systems. For consistency,
- *  we make this the case for all O/Ss. Return zero if the exit status is successfully reaped. Return -1 if an error 
+ *  Collect the child's exit status. The initiating thread must do this on uClibc. 
+ *  Return zero if the exit status is successfully reaped. Return -1 if an error 
  *  and return > 0 if process still running.
  */
 int mprReapCmd(MprCmd *cmd, int timeout)
@@ -721,7 +727,7 @@ int mprReapCmd(MprCmd *cmd, int timeout)
 
     mprAssert(cmd->pid);
 
-#if BLD_FEATURE_MULTITHREAD
+#if BLD_FEATURE_MULTITHREADED && __UCLIBC__
     if (cmd->parent != mprGetCurrentThread(cmd)) {
         /* Return positive status code */
         return -MPR_ERR_BAD_STATE;
@@ -1060,8 +1066,10 @@ static int startProcess(MprCmd *cmd)
     STARTUPINFO         startInfo;
     int                 err;
 
-#if BLD_FEATURE_MULTITHREAD
+#if UNUSED
+#if BLD_FEATURE_MULTITHREADED && __UCLIBC__
     cmd->parent = mprGetCurrentThread(cmd);
+#endif
 #endif
 
     memset(&startInfo, 0, sizeof(startInfo));
@@ -1240,7 +1248,7 @@ static int startProcess(MprCmd *cmd)
 
     files = cmd->files;
 
-#if BLD_FEATURE_MULTITHREAD
+#if BLD_FEATURE_MULTITHREADED && __UCLIBC__
     cmd->parent = mprGetCurrentThread(cmd);
 #endif
 
@@ -1357,8 +1365,10 @@ int startProcess(MprCmd *cmd)
 
     mprLog(cmd, 4, "cmd: start %s", cmd->program);
 
+#if UNUSED
 #if BLD_FEATURE_MULTITHREAD
     cmd->parent = mprGetCurrentThread(cmd);
+#endif
 #endif
 
     entryPoint = 0;

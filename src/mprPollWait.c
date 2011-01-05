@@ -216,7 +216,7 @@ static void serviceIO(MprWaitService *ws, struct pollfd *fds, int count)
     start = 0;
     
 #if BLD_FEATURE_MULTITHREAD
-    mprAssert(mprGetCurrentOsThread(ws) == mprGetMpr(ws)->serviceThread);
+    mprAssert(mprGetCurrentOsThread() == mprGetMpr(ws)->serviceThread);
 
     /*
      *  Service the breakout pipe first
