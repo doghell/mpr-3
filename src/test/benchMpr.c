@@ -35,11 +35,12 @@ volatile int    testComplete;
  *  Initialize the library
  */
 
-int benchMain(int argc, char *argv[])
+MAIN(benchMain, int argc, char *argv[])
 {
-    Mpr             *mpr;
-    char            *argp;
-    int             err, i, nextArg;
+    Mpr         *mpr;
+    MprThread   *tp;
+    char        *argp;
+    int         err, i, nextArg;
 
     mpr = mprCreate(argc, argv, 0);
 
@@ -51,14 +52,13 @@ int benchMain(int argc, char *argv[])
 #endif
 
     err = 0;
-
     for (nextArg = 1; nextArg < argc; nextArg++) {
         argp = argv[nextArg];
         if (*argp != '-') {
             break;
         }
 
-        if (strcmp(argp, "--iterations") == 0) {
+        if (strcmp(argp, "--iterations") == 0 || strcmp(argp, "-i") == 0) {
             if (nextArg >= argc) {
                 err++;
             } else {
@@ -99,7 +99,8 @@ int benchMain(int argc, char *argv[])
     mprStart(mpr, 0);
 
 #if BLD_FEATURE_MULTITHREAD
-    mprCreateThread(mpr, "bench", (MprThreadProc) doBenchmark, (void*) mpr, MPR_NORMAL_PRIORITY, 0);
+    tp = mprCreateThread(mpr, "bench", (MprThreadProc) doBenchmark, (void*) mpr, MPR_NORMAL_PRIORITY, 0);
+    mprStartThread(tp);
     while (!testComplete) {
         mprServiceEvents(mprGetDispatcher(mpr), 250, MPR_SERVICE_EVENTS | MPR_SERVICE_IO);
     }
@@ -111,20 +112,6 @@ int benchMain(int argc, char *argv[])
     // mprFree(mpr);
     return 0;
 }
-
-
-#if WINCE
-int APIENTRY WinMain(HINSTANCE inst, HINSTANCE junk, LPWSTR args, int junk2)
-{
-    return benchMain((int) args, NULL);
-}
-
-#elif !VXWORKS
-int main(int argc, char **argv)
-{
-    return benchMain(argc, argv);
-}
-#endif
 
 
 /*
@@ -146,13 +133,14 @@ static void doBenchmark(Mpr *mpr, void *thread)
     mprPrintf(mpr, "Group\t%-30s\t%13s\t%12s\n", "Benchmark", "Microsec", "Elapsed-sec");
 
     /*
-     *  Malloc (1K)
+     *  Alloc (1K)
      */
-    mprPrintf(mpr, "Malloc Benchmarks\n");
+    mprPrintf(mpr, "Alloc Benchmarks\n");
     count = 2000000 * iterations;
     start = startMark(mpr);
     for (i = 0; i < count; i++) {
         mp = mprAlloc(mpr, 1024);
+        memset(mp, 0, 1024);
         mprFree(mp);
     }
     endMark(mpr, start, count, "Alloc mprAlloc(1K)|mprFree");
@@ -277,7 +265,7 @@ static void endMark(MprCtx ctx, MprTime start, int count, char *msg)
 {
     MprTime     elapsed;
 
-    elapsed = mprGetRemainingTime(ctx, start, 0);
+    elapsed = mprGetElapsedTime(ctx, start);
     mprPrintf(ctx, "\t%-30s\t%13.2f\t%12.2f\n", 
         msg, elapsed * 1000.0 / count, elapsed / 1000.0);
 }
