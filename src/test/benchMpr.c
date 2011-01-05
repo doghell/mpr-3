@@ -38,9 +38,11 @@ volatile int    testComplete;
 MAIN(benchMain, int argc, char *argv[])
 {
     Mpr         *mpr;
-    MprThread   *tp;
     char        *argp;
     int         err, i, nextArg;
+#if BLD_FEATURE_MULTITHREAD
+    MprThread   *tp;
+#endif
 
     mpr = mprCreate(argc, argv, 0);
 

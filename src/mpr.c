@@ -333,8 +333,12 @@ bool mprServicesAreIdle(MprCtx ctx)
     Mpr     *mpr;
     
     mpr = mprGetMpr(ctx);
+#if BLD_FEATURE_MULTITHREAD
     return mprGetListCount(mpr->workerService->busyThreads) == 0 && mprGetListCount(mpr->cmdService->cmds) == 0 && 
        !(mpr->dispatcher->flags & MPR_DISPATCHER_DO_EVENT);
+#else
+    return mprGetListCount(mpr->cmdService->cmds) == 0 && !(mpr->dispatcher->flags & MPR_DISPATCHER_DO_EVENT);
+#endif
 }
 
 
