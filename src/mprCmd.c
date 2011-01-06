@@ -727,7 +727,7 @@ int mprReapCmd(MprCmd *cmd, int timeout)
 
     mprAssert(cmd->pid);
 
-#if BLD_FEATURE_MULTITHREADED && __UCLIBC__
+#if BLD_FEATURE_MULTITHREAD && __UCLIBC__
     if (cmd->parent != mprGetCurrentThread(cmd)) {
         /* Return positive status code */
         return -MPR_ERR_BAD_STATE;
@@ -1067,7 +1067,7 @@ static int startProcess(MprCmd *cmd)
     int                 err;
 
 #if UNUSED
-#if BLD_FEATURE_MULTITHREADED && __UCLIBC__
+#if BLD_FEATURE_MULTITHREAD && __UCLIBC__
     cmd->parent = mprGetCurrentThread(cmd);
 #endif
 #endif
@@ -1248,7 +1248,7 @@ static int startProcess(MprCmd *cmd)
 
     files = cmd->files;
 
-#if BLD_FEATURE_MULTITHREADED && __UCLIBC__
+#if BLD_FEATURE_MULTITHREAD && __UCLIBC__
     cmd->parent = mprGetCurrentThread(cmd);
 #endif
 

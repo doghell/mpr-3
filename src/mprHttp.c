@@ -265,6 +265,7 @@ static int httpDestructor(MprHttp *http)
 
     mprLock(hs->mutex);
     mprRemoveItem(hs->connections, http);
+    mprFree(http->sock);
     mprUnlock(hs->mutex);
     return 0;
 }
