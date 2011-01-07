@@ -277,12 +277,11 @@ static void serviceIO(MprWaitService *ws, struct pollfd *fds, int count)
                 /*
                  *  Disable events to prevent recursive I/O events. Callback must call mprEnableWaitEvents
                  */
-                mprAssert(wp->disableMask == -1);
+                ws->maskGeneration++;
                 if (wp->disableMask == 0) {
                     /* Should not ever get here. Just for safety. */
                     break;
                 }
-                ws->maskGeneration++;
                 wp->disableMask = 0;
                 mprAssert(wp->inUse == 0);
                 wp->inUse++;

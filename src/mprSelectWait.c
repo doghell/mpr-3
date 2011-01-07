@@ -312,12 +312,11 @@ static void serviceIO(MprWaitService *ws)
             /*
              *  Disable events to prevent recursive I/O events. Callback must call mprEnableWaitEvents
              */
-            mprAssert(wp->disableMask == -1);
+            ws->maskGeneration++;
             if (wp->disableMask == 0) {
                 /* Should never get here. Just for safety. */
                 continue;
             }
-            ws->maskGeneration++;
             wp->disableMask = 0;
             mprAssert(wp->inUse == 0);
             wp->inUse++;
