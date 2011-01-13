@@ -19,7 +19,6 @@
  *      BLD_FEATURE_MONITOR_STACK           Monitor stack use
  *      BLD_FEATURE_MULTITHREAD             Defined if building a multi-threaded application.
  *      BLD_FEATURE_VERIFY                  Adds deep and slow integrity tests.
- *      BLD_FEATURE_VMALLOC                 Enable virutal memory allocation regions
  *      BLD_CC_MMU                          Enabled if the system has a memory management unit supporting virtual memory.
  */
 
@@ -93,7 +92,7 @@ static void linkBlock(MprBlk *parent, MprBlk *bp);
 static void sysinit(Mpr *mpr);
 static void unlinkBlock(MprBlk *bp);
 
-#if BLD_FEATURE_VMALLOC
+#if BLD_CC_MMU
 static MprRegion *createRegion(MprCtx ctx, MprHeap *heap, uint size);
 #endif
 #if BLD_FEATURE_MEMORY_STATS
@@ -782,7 +781,7 @@ MprBlk *_mprAllocBlock(MprCtx ctx, MprHeap *heap, MprBlk *parent, uint usize)
     MprBlk      *bp;
     Mpr         *mpr;
     uint        size;
-#if BLD_FEATURE_VMALLOC
+#if BLD_CC_MMU
     MprRegion   *region;
 #endif
 
@@ -815,7 +814,7 @@ MprBlk *_mprAllocBlock(MprCtx ctx, MprHeap *heap, MprBlk *parent, uint usize)
     }
 
     lockHeap(heap);
-#if BLD_FEATURE_VMALLOC
+#if BLD_CC_MMU
     if (likely(heap->flags & MPR_ALLOC_ARENA_HEAP)) {
         /*
          *  Allocate a block from an arena heap
@@ -866,7 +865,7 @@ MprBlk *_mprAllocBlock(MprCtx ctx, MprHeap *heap, MprBlk *parent, uint usize)
             return 0;
         }
         bp->flags = MPR_ALLOC_FROM_MALLOC;
-#if BLD_FEATURE_VMALLOC
+#if BLD_CC_MMU
     }
 #endif
 
@@ -920,13 +919,13 @@ MprBlk *_mprAllocBlock(MprCtx ctx, MprHeap *heap, MprBlk *parent, uint usize)
 static void freeBlock(Mpr *mpr, MprHeap *heap, MprBlk *bp)
 {
     int         size;
-#if BLD_FEATURE_VMALLOC
+#if BLD_CC_MMU
     MprHeap     *hp;
     MprRegion   *region, *next;
 #endif
 
     if (bp->flags & MPR_ALLOC_IS_HEAP && bp != GET_BLK(mpr)) {
-#if BLD_FEATURE_VMALLOC
+#if BLD_CC_MMU
         hp = (MprHeap*) GET_PTR(bp);
         if (hp->depleted) {
             /*
@@ -964,7 +963,7 @@ static void freeBlock(Mpr *mpr, MprHeap *heap, MprBlk *bp)
         mpr->alloc.bytesAllocated -= size;
     }
 
-#if BLD_FEATURE_VMALLOC
+#if BLD_CC_MMU
     if (!(bp->flags & MPR_ALLOC_FROM_MALLOC)) {
         if (heap->flags & MPR_ALLOC_ARENA_HEAP) {
             /*
@@ -994,7 +993,7 @@ static void freeBlock(Mpr *mpr, MprHeap *heap, MprBlk *bp)
 }
 
 
-#if BLD_FEATURE_VMALLOC
+#if BLD_CC_MMU
 /*
  *  Create a new region to satify the request if no memory exists in any depleted regions. 
  */
