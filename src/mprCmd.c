@@ -1114,6 +1114,7 @@ static int startProcess(MprCmd *cmd)
         }
         return MPR_ERR_CANT_CREATE;
     }
+    cmd->thread = procInfo.hThread;
     cmd->process = procInfo.hProcess;
     cmd->pid = procInfo.dwProcessId;
     return 0;
