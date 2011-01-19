@@ -663,6 +663,12 @@ int mprMakeArgv(MprCtx ctx, cchar *program, cchar *cmd, int *argcp, char ***argv
             while ((*cp != '\0') && (*cp != '"')) {
                 cp++;
             }
+        } else if (*cp == '\'') {
+            cp++;
+            argv[argc] = cp;
+            while ((*cp != '\0') && (*cp != '\'')) {
+                cp++;
+            }
         } else {
             argv[argc] = cp;
             while (*cp != '\0' && !isspace((int) *cp)) {

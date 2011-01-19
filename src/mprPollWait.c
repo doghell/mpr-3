@@ -131,7 +131,7 @@ int mprWaitForIO(MprWaitService *ws, int timeout)
 
     rc = poll(fds, count, timeout);
     if (rc < 0) {
-        mprLog(ws, 2, "Poll returned %d, errno %d", rc, mprGetOsError());
+        mprLog(ws, 8, "Poll returned %d, errno %d", rc, mprGetOsError());
     } else if (rc > 0) {
         serviceIO(ws, fds, count);
     }
