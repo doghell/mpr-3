@@ -369,7 +369,10 @@ static int configureCertificates(MprSsl *ssl, SSL_CTX *ctx, char *key, char *cer
         return 0;
     }
     if (cert && SSL_CTX_use_certificate_chain_file(ctx, cert) <= 0) {
-        mprError(ssl, "OpenSSL: Can't define certificate file: %s", cert); 
+        if (SSL_CTX_use_certificate_file(ctx, cert, SSL_FILETYPE_ASN1) <= 0) {
+            mprError(ssl, "OpenSSL: Can't open certificate file: %s", cert);
+            return -1;
+        }
         return -1;
     }
     key = (key == 0) ? cert : key;
@@ -377,7 +380,7 @@ static int configureCertificates(MprSsl *ssl, SSL_CTX *ctx, char *key, char *cer
         if (SSL_CTX_use_PrivateKey_file(ctx, key, SSL_FILETYPE_PEM) <= 0) {
             /* attempt ASN1 for self-signed format */
             if (SSL_CTX_use_PrivateKey_file(ctx, key, SSL_FILETYPE_ASN1) <= 0) {
-                mprError(ssl, "OpenSSL: Can't define private key file: %s", key); 
+                mprError(ssl, "OpenSSL: Can't open private key file: %s", key); 
                 return -1;
             }
         }

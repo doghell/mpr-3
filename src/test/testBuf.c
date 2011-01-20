@@ -135,8 +135,7 @@ static void testGrowBuf(MprTestGroup *gp)
     assert(rc == 1);
     
     rc = mprPutCharToBuf(bp, 'c');
-    assert(rc == -1);
-
+    assert(rc < 0);
 
     mprFree(bp);
 }

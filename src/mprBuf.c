@@ -67,6 +67,7 @@ int mprSetBufSize(MprBuf *bp, int initialSize, int maxSize)
      *  New buffer - create storage for the data
      */
     if ((bp->data = mprAlloc(bp, initialSize)) == 0) {
+        mprAssert(!MPR_ERR_NO_MEMORY);
         return MPR_ERR_NO_MEMORY;
     }
     bp->growBy = initialSize;
@@ -268,7 +269,7 @@ int mprPutCharToBuf(MprBuf *bp, int c)
     space = bp->buflen - mprGetBufLength(bp);
     if (space < (int) sizeof(char)) {
         if (mprGrowBuf(bp, 1) < 0) {
-            return -1;
+            return MPR_ERR_NO_MEMORY;
         }
     }
     cp = (char*) bp->end;
@@ -388,18 +389,16 @@ int mprGrowBuf(MprBuf *bp, int need)
     if (bp->maxsize > 0 && bp->buflen >= bp->maxsize) {
         return MPR_ERR_TOO_MANY;
     }
-
     if (bp->start > bp->end) {
         mprCompactBuf(bp);
     }
-
     if (need > 0) {
         growBy = max(bp->growBy, need);
     } else {
         growBy = bp->growBy;
     }
-    
     if ((newbuf = mprAlloc(bp, bp->buflen + growBy)) == 0) {
+        mprAssert(!MPR_ERR_NO_MEMORY);
         return MPR_ERR_NO_MEMORY;
     }
     if (bp->data) {
