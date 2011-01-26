@@ -164,7 +164,7 @@ static void getWaitFds(MprWaitService *ws)
      *  Add the breakout port to wakeup the service thread when other threads need selecting services.
      */
     pollfd->fd = ws->breakPipe[MPR_READ_PIPE];
-    pollfd->events = POLLIN;
+    pollfd->events = POLLIN | POLLHUP;
     pollfd++;
 #endif
 
@@ -186,7 +186,7 @@ static void getWaitFds(MprWaitService *ws)
 #endif
                 pollfd->events = 0;
                 if (mask & MPR_READABLE) {
-                    pollfd->events |= POLLIN;
+                    pollfd->events |= POLLIN | POLLHUP;
                 }
                 if (mask & MPR_WRITABLE) {
                     pollfd->events |= POLLOUT;
@@ -225,7 +225,7 @@ static void serviceIO(MprWaitService *ws, struct pollfd *fds, int count)
     /*
      *  Service the breakout pipe first
      */
-    if (fds[0].revents & POLLIN) {
+    if (fds[0].revents & (POLLIN | POLLHUP)) {
         char    buf[128];
         if (read(ws->breakPipe[MPR_READ_PIPE], buf, sizeof(buf)) < 0) {
             /* Ignore */
