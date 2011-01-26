@@ -49,16 +49,20 @@ int mprWaitForSingleIO(MprCtx ctx, int fd, int mask, int timeout)
     fds[0].events = 0;
     fds[0].revents = 0;
 
-    if (mask & MPR_READABLE)
-        fds[0].events |= POLLIN;
-    if (mask & MPR_WRITABLE)
+    if (mask & MPR_READABLE) {
+        fds[0].events |= (POLLIN | POLLHUP);
+    }
+    if (mask & MPR_WRITABLE) {
         fds[0].events |= POLLOUT;
+    }
     if (poll(fds, 1, timeout) > 0) {
         mask = 0;
-        if (fds[0].revents & POLLIN)
+        if (fds[0].revents & (POLLIN | POLLHUP)) {
             mask |= MPR_READABLE;
-        if (fds[0].revents & POLLOUT)
+        }
+        if (fds[0].revents & POLLOUT) {
             mask |= MPR_WRITABLE;
+        }
         return mask;
     }
     return 0;
