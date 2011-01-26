@@ -77,6 +77,7 @@ static int withDataCallback(MprCmd *cmd, int channel, void *data)
             mprLog(cmd, 5, "Read %d (errno %d) from %s", len, status, (channel == MPR_CMD_STDOUT) ? "stdout" : "stderr");
             if (len == 0 || (len < 0 && !(status == EAGAIN || status == EWOULDBLOCK))) {
                 mprCloseCmdFd(cmd, channel);
+#if UNUSED
                 if (channel == MPR_CMD_STDOUT && cmd->flags & MPR_CMD_ERR) {
                     /*
                      *  Now that stdout is complete, enable stderr to receive an EOF or any error output.
@@ -86,13 +87,16 @@ static int withDataCallback(MprCmd *cmd, int channel, void *data)
                 }
             } else {
                 mprEnableCmdEvents(cmd, channel);
+#endif
             }
             return 0;
             
         } else {
             mprAdjustBufEnd(buf, len);
             mprAddNullToBuf(buf);
+#if UNUSED
             mprEnableCmdEvents(cmd, channel);
+#endif
         }
     }
     return 0;
