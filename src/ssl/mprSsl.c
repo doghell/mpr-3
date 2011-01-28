@@ -41,7 +41,7 @@ static MprModule *loadSsl(MprCtx ctx, bool lazy)
         return 0;
     }
 #endif
-    if ((mp = mprCreateModule(ctx, "sslModule", BLD_VERSION, (void*) NULL, NULL, NULL)) == 0) {
+    if ((mp = mprCreateModule(ctx, "sslModule", BLD_VERSION, NULL, NULL, NULL)) == 0) {
         return 0;
     }
     mpr->flags |= MPR_SSL_PROVIDER_LOADED;

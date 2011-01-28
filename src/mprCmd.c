@@ -46,9 +46,6 @@ MprCmdService *mprCreateCmdService(Mpr *mpr)
 }
 
 
-/*
- *  Create a new command object
- */
 MprCmd *mprCreateCmd(MprCtx ctx)
 {
     MprCmdService   *cs;
@@ -333,7 +330,6 @@ int mprRunCmdV(MprCmd *cmd, int argc, char **argv, char **out, char **err, int f
     if (cmd->files[MPR_CMD_STDIN].fd >= 0) {
         mprCloseCmdFd(cmd, MPR_CMD_STDIN);
     }
-
     if (rc < 0) {
         if (err) {
             if (rc == MPR_ERR_CANT_ACCESS) {
@@ -347,12 +343,10 @@ int mprRunCmdV(MprCmd *cmd, int argc, char **argv, char **out, char **err, int f
         unlock(cmd);
         return rc;
     }
-
     if (cmd->flags & MPR_CMD_DETACH) {
         unlock(cmd);
         return 0;
     }
-
     unlock(cmd);
     if (mprWaitForCmd(cmd, -1) < 0) {
         return MPR_ERR_NOT_READY;
@@ -645,7 +639,7 @@ static int serviceCmdEvents(MprCmd *cmd, int channel, int timeout)
 
 
 /*
- *  Windows pipes don't trigger EOF, so we need some extra assist here. This polls for I/O from the command.
+ *  Poll for I/O events on the CGI pipes
  */
 void mprPollCmdPipes(MprCmd *cmd, int timeout)
 {
@@ -726,13 +720,6 @@ int mprReapCmd(MprCmd *cmd, int timeout)
     MprTime     mark;
 
     mprAssert(cmd->pid);
-
-#if BLD_FEATURE_MULTITHREAD && __UCLIBC__
-    if (cmd->parent != mprGetCurrentThread(cmd)) {
-        /* Return positive status code */
-        return -MPR_ERR_BAD_STATE;
-    }
-#endif
 
     if (timeout < 0) {
         timeout = MAXINT;
@@ -1241,10 +1228,6 @@ static int startProcess(MprCmd *cmd)
     int             rc, i, err;
 
     files = cmd->files;
-
-#if BLD_FEATURE_MULTITHREAD && __UCLIBC__
-    cmd->parent = mprGetCurrentThread(cmd);
-#endif
 
     /*
      *  Create the child

@@ -232,9 +232,7 @@ void mprUnloadModule(MprModule *mp)
 {
     mprAssert(mp->handle);
 
-    if (mp->stop) {
-        mp->stop(mp);
-    }
+    mprStopModule(mp);
     mprRemoveItem(mprGetMpr(mp)->moduleService->modules, mp);
     FreeLibrary((HINSTANCE) mp->handle);
 }

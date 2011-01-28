@@ -59,7 +59,7 @@ int mprStartModuleService(MprModuleService *ms)
     mprAssert(ms);
 
     for (next = 0; (mp = mprGetNextItem(ms->modules, &next)) != 0; ) {
-        if (mp->start && mp->start(mp) < 0) {
+        if (mprStartModule(mp) < 0) {
             return MPR_ERR_CANT_INITIALIZE;
         }
     }
@@ -82,11 +82,34 @@ void mprStopModuleService(MprModuleService *ms)
 
     mprLock(ms->mutex);
     for (next = 0; (mp = mprGetNextItem(ms->modules, &next)) != 0; ) {
-        if (mp->stop) {
-            mp->stop(mp);
-        }
+        mprStopModule(mp);
     }
     mprUnlock(ms->mutex);
+}
+
+
+int mprStartModule(MprModule *mp)
+{
+    mprAssert(mp);
+
+    if (mp->start && !(mp->flags & MPR_MODULE_STARTED)) {
+        if (mp->start(mp) < 0) {
+            return MPR_ERR_CANT_INITIALIZE;
+        }
+    }
+    mp->flags |= MPR_MODULE_STARTED;
+    return 0;
+}
+
+
+void mprStopModule(MprModule *mp)
+{
+    mprAssert(mp);
+
+    if (mp->stop && (mp->flags & MPR_MODULE_STARTED) && !(mp->flags & MPR_MODULE_STOPPED)) {
+        mp->stop(mp);
+    }
+    mp->flags |= MPR_MODULE_STOPPED;
 }
 
 
@@ -108,12 +131,13 @@ MprModule *mprCreateModule(MprCtx ctx, cchar *name, cchar *version, void *data, 
     if (mp == 0) {
         return 0;
     }
-
     index = mprAddItem(ms->modules, mp);
     mp->name = mprStrdup(mp, name);
     mp->version = mprStrdup(mp, version);
     mp->moduleData = data;
     mp->handle = 0;
+    mp->timeout = 0;
+    mp->lastActivity = mprGetTime(ctx);
 
     if (index < 0 || mp->name == 0 || mp->version == 0) {
         mprFree(mp);
@@ -123,7 +147,7 @@ MprModule *mprCreateModule(MprCtx ctx, cchar *name, cchar *version, void *data, 
     mp->stop = stop;
 
     if (mpr->flags & MPR_STARTED) {
-        if (mp->start && mp->start(mp) < 0) {
+        if (mprStartModule(mp) < 0) {
             return 0;
         }
     }

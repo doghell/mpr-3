@@ -133,6 +133,7 @@ void mprSleep(MprCtx ctx, int milliseconds)
 
 void mprUnloadModule(MprModule *mp)
 {
+    mprStopModule(mp);
     if (mp->handle) {
         dlclose(mp->handle);
     }
