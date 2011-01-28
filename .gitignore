@@ -42,3 +42,4 @@ projects/MACOSX/mpr-dynamic/build
 *.pbxuser
 *.perspectivev3
 *.pbxproj
+test/testFile.tmp*
