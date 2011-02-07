@@ -4272,4 +4272,6 @@ dtoa
 }
 #endif
 /* EMBEDTHIS */
+#else /* BLD_FEATURE_FLOATING_POINT */
+void __dummyDtoa() {}
 #endif /* BLD_FEATURE_FLOATING_POINT */

@@ -103,9 +103,11 @@ Mpr *mprCreateEx(int argc, char **argv, MprAllocNotifier cback, void *shell)
     if ((mpr->dispatcher = mprCreateDispatcher(mpr)) == 0) {
         goto error;
     }
+#if BLD_FEATURE_CMD
     if ((mpr->cmdService = mprCreateCmdService(mpr)) == 0) {
         goto error;
     }
+#endif
 #if BLD_FEATURE_MULTITHREAD
     if ((mpr->workerService = mprCreateWorkerService(mpr)) == 0) {
         goto error;
@@ -331,14 +333,24 @@ bool mprIsComplete(MprCtx ctx)
 bool mprServicesAreIdle(MprCtx ctx)
 {
     Mpr     *mpr;
+    int     idle;
     
     mpr = mprGetMpr(ctx);
-#if BLD_FEATURE_MULTITHREAD
-    return mprGetListCount(mpr->workerService->busyThreads) == 0 && mprGetListCount(mpr->cmdService->cmds) == 0 && 
-       !(mpr->dispatcher->flags & MPR_DISPATCHER_DO_EVENT);
-#else
-    return mprGetListCount(mpr->cmdService->cmds) == 0 && !(mpr->dispatcher->flags & MPR_DISPATCHER_DO_EVENT);
+    idle = 1;
+#if BLD_FEATURE_CMD
+    if (mprGetListCount(mpr->cmdService->cmds)) {
+        idle = 0;
+    }
 #endif
+#if BLD_FEATURE_MULTITHREAD
+    if (mprGetListCount(mpr->workerService->busyThreads)) {
+       idle = 0;
+    }
+#endif
+    if (mpr->dispatcher->flags & MPR_DISPATCHER_DO_EVENT) {
+        idle = 0;
+    }
+    return idle;
 }
 
 

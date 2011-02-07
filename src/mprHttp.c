@@ -2082,6 +2082,9 @@ static void completeRequest(MprHttp *http)
 }
 
 
+#else /* BLD_FEATURE_HTTP_CLIENT */
+
+void __dummy_httpClient() {}
 #endif /* BLD_FEATURE_HTTP_CLIENT */
 
 /*
