@@ -126,7 +126,10 @@ void mprSleep(MprCtx ctx, int milliseconds)
 void mprUnloadModule(MprModule *mp)
 {
     mprRemoveItem(mprGetMpr(mp)->moduleService->modules, mp);
-    unldByModuleId((MODULE_ID) mp->handle, 0);
+    if (mp->handle) {
+        unldByModuleId((MODULE_ID) mp->handle, 0);
+        mp->handle = 0;
+    }
 }
 
 

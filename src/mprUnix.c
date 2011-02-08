@@ -136,6 +136,7 @@ void mprUnloadModule(MprModule *mp)
     mprStopModule(mp);
     if (mp->handle) {
         dlclose(mp->handle);
+        mp->handle = 0;
     }
     mprRemoveItem(mprGetMpr(mp)->moduleService->modules, mp);
 }

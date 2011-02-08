@@ -296,7 +296,10 @@ void mprUnloadModule(MprModule *mp)
 
     mprStopModule(mp);
     mprRemoveItem(mprGetMpr(mp)->moduleService->modules, mp);
-    FreeLibrary((HINSTANCE) mp->handle);
+    if (mp->handle) {
+        FreeLibrary((HINSTANCE) mp->handle);
+        mp->handle = 0;
+    }
 }
 
 
