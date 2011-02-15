@@ -796,14 +796,6 @@ MprBlk *_mprAllocBlock(MprCtx ctx, MprHeap *heap, MprBlk *parent, uint usize)
      *  exceeded. It is the application's responsibility to set the red-line value suitable for the system.
      */
     if (parent) {
-#if UNUSED
-        if (size >= MPR_ALLOC_BIGGEST) {
-            /* Block is too big */
-            allocException(parent, size, 0);
-            return 0;
-
-        } else 
-#endif
         if ((size + mpr->alloc.bytesAllocated) > mpr->alloc.maxMemory) {
             /*
              *  Prevent allocation as over the maximum memory limit.

@@ -24,26 +24,16 @@
     some trickery to remap the year to a valid year when using localtime.
     FYI: 32 bit time_t expires at: 03:14:07 UTC on Tuesday, 19 January 2038
  */
-#if UNUSED
-#define MAX_TIME    (((time_t) -1) & ~(((time_t) 1) << ((sizeof(time_t) * 8) - 1)))
-#define MIN_TIME    (((time_t) 1) << ((sizeof(time_t) * 8) - 1))
-#else
 #define MAX_TIME    (((time_t) -1) & ~(((time_t) 1) << 31))
 #define MIN_TIME    (((time_t) 1) << 31)
-#endif
 
-#if UNUSED
 /*
     Approximate, conservative min and max year. The 31556952 constant is approx sec/year (365.2425 * 86400)
     Reduce by one to ensure no overflow. Note: this does not reduce actual date range representations and is
     only used in DST calculations. Use 1900 for the minimum as 
  */
-#define MIN_YEAR    ((MIN_TIME / 31556952) + 1)
-#define MAX_YEAR    ((MAX_TIME / 31556952) - 1)
-#else
 #define MIN_YEAR    1901
 #define MAX_YEAR    2037
-#endif
 
 /*
     Token types or'd into the TimeToken value
@@ -211,10 +201,6 @@ int mprCreateTimeService(MprCtx ctx)
 {
     Mpr                 *mpr;
     TimeToken           *tt;
-#if UNUSED
-    struct timezone     tz;
-    struct timeval      tv;
-#endif
 
     mpr = mprGetMpr(ctx);
     mpr->timeTokens = mprCreateHash(mpr, -1);
@@ -241,13 +227,6 @@ int mprCreateTimeService(MprCtx ctx)
     for (tt = offsets; tt->name; tt++) {
         mprAddHash(mpr->timeTokens, tt->name, (void*) tt);
     }
-#if UNUSED
-    /*
-        Get timezone without DST
-     */
-    gettimeofday(&tv, &tz);
-    mpr->timezone = -tz.tz_minuteswest * MS_PER_MIN;
-#endif
     return 0;
 }
 
@@ -593,19 +572,11 @@ static void decodeTime(MprCtx ctx, struct tm *tp, MprTime when, bool local)
     year = getYear(when);
 
     tp->tm_year     = year - 1900;
-#if UNUSED
-    tp->tm_hour     = (int) ((when / MS_PER_HOUR) % 24);
-    tp->tm_min      = (int) ((when / MS_PER_MIN) % 60);
-    tp->tm_sec      = (int) ((when / MS_PER_SEC) % 60);
-    tp->tm_wday     = (int) (((when / MS_PER_DAY) + 4) % 7);
-    tp->tm_yday     = (int) ((when / MS_PER_DAY) - daysSinceEpoch(year));
-#else
     tp->tm_hour     = (int) (floorDiv(when, MS_PER_HOUR) % 24);
     tp->tm_min      = (int) (floorDiv(when, MS_PER_MIN) % 60);
     tp->tm_sec      = (int) (floorDiv(when, MS_PER_SEC) % 60);
     tp->tm_wday     = (int) ((floorDiv(when, MS_PER_DAY) + 4) % 7);
     tp->tm_yday     = (int) (floorDiv(when, MS_PER_DAY) - daysSinceEpoch(year));
-#endif
     tp->tm_mon      = getMonth(year, tp->tm_yday);
     tp->tm_isdst    = dst != 0;
 #if BLD_UNIX_LIKE && !CYGWIN

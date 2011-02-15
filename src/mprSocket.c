@@ -1378,16 +1378,6 @@ int mprGetSocketInfo(MprCtx ctx, cchar *host, int port, int *family, int *protoc
     }
     mprItoa(portBuf, sizeof(portBuf), port, 10);
 
-#if UNUSED
-    if (host == NULL || strchr(host, ':') == 0) {
-        /* 
-            Looks like IPv4. Map localhost to 127.0.0.1 to avoid crash bug in MAC OS X.
-         */
-        if (host && strcmp(host, "localhost") == 0) {
-            host = "127.0.0.1";
-        }
-    }
-#endif
     res = 0;
     if (getaddrinfo(host, portBuf, &hints, &res) != 0) {
         mprUnlock(ss->mutex);
