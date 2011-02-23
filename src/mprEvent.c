@@ -62,11 +62,6 @@ MprEvent *mprCreateEvent(MprDispatcher *dispatcher, MprEventProc proc, int perio
 {
     MprEvent        *event;
 
-#if UNUSED
-    if (mprIsExiting(dispatcher)) {
-        return 0;
-    }
-#endif
     event = mprAllocObjWithDestructor(dispatcher, MprEvent, eventDestructor);
     if (event == 0) {
         return 0;

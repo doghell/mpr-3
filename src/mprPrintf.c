@@ -421,9 +421,6 @@ static char *sprintfCore(MprCtx ctx, char *buf, int maxsize, cchar *spec, va_lis
 
         case STATE_DOT:
             fmt.precision = 0;
-#if UNUSED
-            fmt.flags &= ~SPRINTF_LEAD_ZERO;
-#endif
             break;
 
         case STATE_PRECISION:
