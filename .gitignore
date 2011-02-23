@@ -43,3 +43,4 @@ projects/MACOSX/mpr-dynamic/build
 *.perspectivev3
 *.pbxproj
 test/testFile.tmp*
+bin/*.manifest
