@@ -608,7 +608,7 @@ void mprDisableCmdEvents(MprCmd *cmd, int channel)
 #if BLD_WIN_LIKE && !WINCE
 /*
  *  Service I/O and return a count of characters that can be read without blocking. If the proces has completed,
- *  then return 1 to indicate that EOF can be read.
+ *  then return 1 to indicate that read can be called.
  */
 static int serviceCmdEvents(MprCmd *cmd, int channel, int timeout)
 {
@@ -634,6 +634,7 @@ static int serviceCmdEvents(MprCmd *cmd, int channel, int timeout)
         }
         return 1;
     }
+    return 0;
 }
 #endif /* BLD_WIN_LIKE && !WINCE */
 
