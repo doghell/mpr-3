@@ -469,7 +469,8 @@ int mprStartHttpRequest(MprHttp *http, cchar *method, cchar *requestUrl)
     MprHashTable        *headers;
     MprHash             *header;
     char                *host;
-    int                 port, len, rc, written;
+    int64               len, written;
+    int                 port, rc;
 
     mprAssert(http);
     mprAssert(method && *method);
@@ -802,7 +803,7 @@ int mprReadHttp(MprHttp *http, char *data, int size)
 {
     MprHttpResponse *resp;
     MprBuf          *buf;
-    int             nbytes;
+    int64             nbytes;
 
     mprAssert(size > 0);
 
@@ -843,7 +844,7 @@ char *mprReadHttpString(MprHttp *http)
 {
     MprBuf      *buf;
     char        data[MPR_HTTP_BUFSIZE], *result;
-    int         count;
+    int64       count;
 
     if (http->state == MPR_HTTP_STATE_BEGIN) {
         return 0;
@@ -1116,7 +1117,7 @@ static bool parseHeaders(MprHttp *http, MprBuf *buf)
         switch (key[0]) {
         case 'C':
             if (strcmp("CONTENT-LENGTH", key) == 0) {
-                resp->contentLength = atoi(value);
+                resp->contentLength = mprAtoi(value, 10);
                 if (resp->contentLength < 0) {
                     resp->contentLength = 0;
                 }

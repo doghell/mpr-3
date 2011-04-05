@@ -969,14 +969,15 @@ static int localSendfile(MprSocket *sp, MprFile *file, MprOffset offset, int len
  *  Write data from a file to a socket. Includes the ability to write header before and after the file data.
  *  Works even with a null "file" to just output the headers.
  */
-MprOffset mprSendFileToSocket(MprSocket *sock, MprFile *file, MprOffset offset, int bytes, MprIOVec *beforeVec, 
-    int beforeCount, MprIOVec *afterVec, int afterCount)
+MprOffset mprSendFileToSocket(MprSocket *sock, MprFile *file, MprOffset offset, int64 bytes, MprIOVec *beforeVec, 
+    int64 beforeCount, MprIOVec *afterVec, int64 afterCount)
 {
 #if MACOSX && __MAC_OS_X_VERSION_MIN_REQUIRED >= 1050
     struct sf_hdtr  def;
 #endif
     off_t           written, off;
-    int             rc, i, done, toWriteBefore, toWriteAfter, toWriteFile;
+    int64           toWriteBefore, toWriteAfter, toWriteFile;
+    int             rc, i, done;
 
     rc = 0;
 
