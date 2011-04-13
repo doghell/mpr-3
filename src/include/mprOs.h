@@ -7,7 +7,7 @@
 /******************************* Documentation ********************************/
 
 /*
- *  This header is part of the Michael's Portable Runtime and aims to include
+ *  This header is part of the Multithreaded Portable Runtime (MPR) and aims to include
  *  all necessary O/S headers and to unify the constants and declarations 
  *  required by Embedthis products. It can be included by C or C++ programs.
  */

@@ -1,5 +1,5 @@
 /**
- *  mpr.c - Michael's Portable Runtime (MPR). Initialization, start/stop and control of the MPR.
+ *  mpr.c - Multithreaded Portable Runtime (MPR). Initialization, start/stop and control of the MPR.
  *
  *  Copyright (c) All Rights Reserved. See copyright notice at the bottom of the file.
  */

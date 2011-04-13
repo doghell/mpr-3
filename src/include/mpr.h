@@ -1,12 +1,12 @@
 /*
- *  mpr.h -- Header for the Michael's Portable Runtime (MPR).
+ *  mpr.h -- Header for the Multithreaded Portable Runtime (MPR).
  *
  *  Copyright (c) All Rights Reserved. See details at the end of the file.
  */
 
 /**
  *  @file mpr.h
- *  Michael's Portable Runtime (MPR) is a portable runtime core for embedded applications.
+ *  The Multithreaded Portable Runtime (MPR) is a runtime library for embedded applications.
  *  The MPR provides management for logging, error handling, events, files, http, memory, ssl, sockets, strings, 
  *  xml parsing, and date/time functions. It also provides a foundation of safe routines for secure programming, 
  *  that help to prevent buffer overflows and other security threats. It is correctly handles null arguments without

@@ -1,5 +1,5 @@
 /**
- *  mprLog.c - Michael's Portable Runtime (MPR) Logging and error reporting.
+ *  mprLog.c - Multithreaded Portable Runtime (MPR) Logging and error reporting.
  *
  *  Copyright (c) All Rights Reserved. See details at the end of the file.
  */

@@ -1,7 +1,7 @@
-README.TXT for the Michael's Portable Runtime.
+README.TXT for the Multithreaded Portable Runtime.
 --------------------------------------------------------------------------------
 
-The Michael's Portable Runtime provides a cross-platform abstraction to 
+The Multithreaded Portable Runtime provides a cross-platform abstraction to 
 hide per operating/system dependencies. Implemented in "C", it can be used
 in both C and C++ programs. It implements an interface that is sufficient to 
 support AppWeb and it does not try to be a complete cross-platform API.

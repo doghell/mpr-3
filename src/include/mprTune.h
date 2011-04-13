@@ -1,5 +1,5 @@
 /*
- *  mprTune.h - Header for the Michael's Portable Runtime (MPR) Base.
+ *  mprTune.h - Header for the Multithreaded Portable Runtime (MPR) Base.
  *
  *  Copyright (c) All Rights Reserved. See details at the end of the file.
  */
