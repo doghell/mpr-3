@@ -1111,6 +1111,11 @@ extern int gettimeofday(struct timeval *tv, struct timezone *tz);
 }
 #endif
 
+/*
+    Forward compatibility aliases
+ */
+typedef MprOffset MprOff;
+
 #endif /* _h_MPR_OS_HDRS */
 
 /*

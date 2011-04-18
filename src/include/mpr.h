@@ -1687,7 +1687,7 @@ typedef int             (*MprMakeDirProc)(struct MprFileSystem *fs, cchar *path,
 typedef int             (*MprMakeLinkProc)(struct MprFileSystem *fs, cchar *path, cchar *target, int hard);
 typedef int             (*MprCloseFileProc)(struct MprFile *file);
 typedef int             (*MprReadFileProc)(struct MprFile *file, void *buf, uint size);
-typedef long            (*MprSeekFileProc)(struct MprFile *file, int seekType, long distance);
+typedef MprOff          (*MprSeekFileProc)(struct MprFile *file, int seekType, MprOff distance);
 typedef int             (*MprSetBufferedProc)(struct MprFile *file, int initialSize, int maxSize);
 typedef int             (*MprWriteFileProc)(struct MprFile *file, cvoid *buf, uint count);
 
@@ -2001,7 +2001,7 @@ extern int mprRead(MprFile *file, void *buf, uint size);
  *  @return Returns the new file position if successful otherwise a negative MPR error code is returned.
  *  @ingroup MprFile
  */
-extern long mprSeek(MprFile *file, int seekType, long distance);
+extern MprOff mprSeek(MprFile *file, int seekType, MprOff distance);
 
 /**
  *  Write data to a file.
@@ -2053,7 +2053,7 @@ typedef struct MprPath {
     MprTime         ctime;              /**< Create time */
     MprTime         mtime;              /**< Modified time */
     int64           size;               /**< File length */
-    uint            inode;              /**< Inode number */
+    int64           inode;              /**< Inode number */
     bool            isDir;              /**< Set if directory */
     bool            isLink;             /**< Set if symbolic link */
     bool            isReg;              /**< Set if a regular file */
@@ -3407,7 +3407,7 @@ typedef struct MprBlk {
 #endif
 } MprBlk;
 
-#define MPR_ALLOC_HDR_SIZE      (MPR_ALLOC_ALIGN(sizeof(struct MprBlk)))
+#define MPR_ALLOC_HDR_SIZE      ((int) (MPR_ALLOC_ALIGN(sizeof(struct MprBlk))))
 #define MPR_GET_BLK(ptr)        ((MprBlk*) (((char*) (ptr)) - MPR_ALLOC_HDR_SIZE))
 #define MPR_GET_PTR(bp)         ((void*) (((char*) (bp)) + MPR_ALLOC_HDR_SIZE))
 #define MPR_GET_BLK_SIZE(bp)    ((bp)->size)
@@ -4574,7 +4574,7 @@ extern int mprGetSocketError(MprSocket *sp);
  *  @ingroup MprSocket
  */
 extern MprOffset mprSendFileToSocket(MprSocket *sock, MprFile *file, MprOffset offset, int64 bytes, MprIOVec *beforeVec, 
-    int64 beforeCount, MprIOVec *afterVec, int64 afterCount);
+    int beforeCount, MprIOVec *afterVec, int afterCount);
 #endif
 
 /**
@@ -5316,7 +5316,7 @@ extern cchar *mprGetHttpMessage(MprHttp *http);
  *  @return A count of the response content data in bytes.
  *  @ingroup MprHttp
  */
-extern int mprGetHttpContentLength(MprHttp *http);
+extern int64 mprGetHttpContentLength(MprHttp *http);
 
 /**
  *  Get the Http error message

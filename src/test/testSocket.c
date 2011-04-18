@@ -235,7 +235,7 @@ static void testClientServer(MprTestGroup *gp, cchar *host, int port)
     assert(ts->accepted);
 
     buf = "01234567890123456789012345678901234567890123456789\r\n";
-    len = strlen(buf);
+    len = (int) strlen(buf);
 
     /*
      *  Write a set of lines to the client. Server should receive. Use non-blocking mode. This writes about 5K of data.

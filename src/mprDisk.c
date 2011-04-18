@@ -63,7 +63,7 @@ static int readFile(MprFile *file, void *buf, uint size)
     mprAssert(file);
     mprAssert(buf);
 
-    return read(file->fd, buf, size);
+    return (int) read(file->fd, buf, size);
 }
 
 
@@ -75,19 +75,23 @@ static int writeFile(MprFile *file, cvoid *buf, uint count)
 #if VXWORKS
     return write(file->fd, (void*) buf, count);
 #else
-    return write(file->fd, buf, count);
+    return (int) write(file->fd, buf, count);
 #endif
 }
 
 
-static long seekFile(MprFile *file, int seekType, long distance)
+static MprOff seekFile(MprFile *file, int seekType, MprOff distance)
 {
     mprAssert(file);
 
     if (file == 0) {
         return MPR_ERR_BAD_HANDLE;
     }
-    return lseek(file->fd, distance, seekType);
+#if BLD_WIN_LIKE
+    return (MprOff) lseeki64(file->fd, (int64) distance, seekType);
+#else
+    return (MprOff) lseek(file->fd, (off_t) distance, seekType);
+#endif
 }
 
 
@@ -250,7 +254,7 @@ static int getPathInfo(MprDiskFileSystem *fileSystem, cchar *path, MprPath *info
     info->atime = s.st_atime;
     info->ctime = s.st_ctime;
     info->mtime = s.st_mtime;
-    info->inode = s.st_ino;
+    info->inode = (int) s.st_ino;
     info->isDir = S_ISDIR(s.st_mode);
     info->isReg = S_ISREG(s.st_mode);
     info->perms = s.st_mode & 07777;
@@ -269,7 +273,7 @@ static char *getPathLink(MprDiskFileSystem *fileSystem, cchar *path)
     char    pbuf[MPR_MAX_PATH];
     int     len;
 
-    if ((len = readlink(path, pbuf, sizeof(pbuf) - 1)) < 0) {
+    if ((len = (int) readlink(path, pbuf, sizeof(pbuf) - 1)) < 0) {
         return NULL;
     }
     pbuf[len] = '\0';

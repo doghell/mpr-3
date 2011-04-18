@@ -64,7 +64,7 @@ int mprSetListLimits(MprList *lp, int initialSize, int maxSize)
     if (maxSize <= 0) {
         maxSize = MAXINT;
     }
-    size = initialSize * sizeof(void*);
+    size = initialSize * (int) sizeof(void*);
 
     if (lp->items == 0) {
         lp->items = (void**) mprAllocZeroed(lp, size);
@@ -515,7 +515,7 @@ static int growList(MprList *lp, int incr)
     } else {
         len = lp->capacity + incr;
     }
-    memsize = len * sizeof(void*);
+    memsize = len * (int) sizeof(void*);
 
     /*
      *  Grow the list of items. Use the existing context for lp->items if it already exists. Otherwise use the list as the

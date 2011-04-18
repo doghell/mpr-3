@@ -114,7 +114,7 @@ MprUri *mprParseUri(MprCtx ctx, cchar *uri)
     len = ulen * 2 + 3;
 
     up->originalUri = mprStrdup(up, uri);
-    up->parsedUriBuf = (char*) mprAlloc(up, len * sizeof(char));
+    up->parsedUriBuf = (char*) mprAlloc(up, len * (int) sizeof(char));
 
     hostbuf = &up->parsedUriBuf[ulen+1];
     strcpy(up->parsedUriBuf, uri);

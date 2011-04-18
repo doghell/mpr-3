@@ -233,7 +233,8 @@ static void closeMss(MprSocket *sp, bool gracefully)
          */
         matrixSslEncodeClosureAlert(msp->mssl, &msp->outsock);
         if (msp->outsock.start < msp->outsock.end) {
-            sp->service->standardProvider->writeSocket(sp, msp->outsock.start, msp->outsock.end - msp->outsock.start);
+            sp->service->standardProvider->writeSocket(sp, msp->outsock.start, 
+                (int) (msp->outsock.end - msp->outsock.start));
         }
     }
     sp->service->standardProvider->closeSocket(sp, gracefully);
@@ -570,7 +571,7 @@ readMore:
         //
         if ((insock->end - insock->start) < insock->size) {
             performRead = 1;
-            bytes = standard->readSocket(sp, insock->end, (insock->buf + insock->size) - insock->end);
+            bytes = standard->readSocket(sp, insock->end, (int) ((insock->buf + insock->size) - insock->end));
             if (bytes <= 0 && (insock->end == insock->start)) {
                 return bytes;
             }
@@ -612,7 +613,7 @@ decodeMore:
         //  Copy as much as we can from the temp buffer into the caller's buffer
         //  and leave the remainder in inbuf until the next call to read
         //
-        space = (inbuf->end - inbuf->start);
+        space = (int) (inbuf->end - inbuf->start);
         len = min(space, len);
         memcpy(buf, inbuf->start, len);
         inbuf->start += len;
@@ -624,12 +625,12 @@ decodeMore:
      *  to the outgoing data buffer and flush it out.
      */
     case SSL_SEND_RESPONSE:
-        bytes = standard->writeSocket(sp, inbuf->start, inbuf->end - inbuf->start);
+        bytes = standard->writeSocket(sp, inbuf->start, (int) (inbuf->end - inbuf->start));
         inbuf->start += bytes;
         if (inbuf->start < inbuf->end) {
             mprSetSocketBlockingMode(sp, 1);
             while (inbuf->start < inbuf->end) {
-                bytes = standard->writeSocket(sp, inbuf->start, inbuf->end - inbuf->start);
+                bytes = standard->writeSocket(sp, inbuf->start, (int) (inbuf->end - inbuf->start));
                 if (bytes < 0) {
                     goto readError;
                 }
@@ -652,7 +653,7 @@ decodeMore:
         mprLog(sp, 4, "MatrixSSL: Closing on protocol error %d", error);
         if (inbuf->start < inbuf->end) {
             mprSetSocketBlockingMode(sp, 0);
-            bytes = standard->writeSocket(sp, inbuf->start, inbuf->end - inbuf->start);
+            bytes = standard->writeSocket(sp, inbuf->start, (int) (inbuf->end - inbuf->start));
         }
         goto readError;
 
@@ -826,7 +827,7 @@ retryEncode:
     /*
      *  We've got data to send.  Try to write it all out.
      */
-    rc = sp->service->standardProvider->writeSocket(sp, outsock->start, outsock->end - outsock->start);
+    rc = sp->service->standardProvider->writeSocket(sp, outsock->start, (int) (outsock->end - outsock->start));
     if (rc <= 0) {
         unlock(sp);
         return rc;
@@ -855,7 +856,8 @@ static int flushMss(MprSocket *sp)
     msp = (MprSslSocket*) sp->sslSocket;
 
     if (msp->outsock.start < msp->outsock.end) {
-        return sp->service->standardProvider->writeSocket(sp, msp->outsock.start, msp->outsock.end - msp->outsock.start);
+        return sp->service->standardProvider->writeSocket(sp, msp->outsock.start, 
+            (int) (msp->outsock.end - msp->outsock.start));
     }
     return 0;
 }

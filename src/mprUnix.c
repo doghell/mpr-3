@@ -60,7 +60,7 @@ int mprGetRandomBytes(MprCtx ctx, char *buf, int length, int block)
 
     sofar = 0;
     do {
-        rc = read(fd, &buf[sofar], length);
+        rc = (int) read(fd, &buf[sofar], length);
         if (rc < 0) {
             mprAssert(0);
             return MPR_ERR_CANT_READ;

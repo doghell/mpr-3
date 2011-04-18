@@ -42,7 +42,7 @@ MprHashTable *mprCreateHash(MprCtx ctx, int hashSize)
 
     table->count = 0;
     table->hashSize = hashSize;
-    table->buckets = (MprHash**) mprAllocZeroed(table, sizeof(MprHash*) * hashSize);
+    table->buckets = (MprHash**) mprAllocZeroed(table, (int) sizeof(MprHash*) * hashSize);
 
     if (table->buckets == 0) {
         mprFree(table);

@@ -2016,8 +2016,8 @@ Returns:             nothing
 static void
 complete_callout(uschar *previous_callout, const uschar *ptr, compile_data *cd)
 {
-int length = ptr - cd->start_pattern - GET(previous_callout, 2);
-PUT(previous_callout, 2 + LINK_SIZE, length);
+    int length = (int) (ptr - cd->start_pattern - GET(previous_callout, 2));
+    PUT(previous_callout, 2 + LINK_SIZE, length);
 }
 
 
@@ -2551,7 +2551,7 @@ for (;; ptr++)
       goto FAILED;
       }
 
-    *lengthptr += code - last_code;
+    *lengthptr += (int) (code - last_code);
     DPRINTF(("length=%d added %d c=%c\n", *lengthptr, code - last_code, c));
 
     /* If "previous" is set and it is not at the start of the work space, move
@@ -2668,7 +2668,7 @@ for (;; ptr++)
         *errorcodeptr = ERR20;
         goto FAILED;
         }
-      *lengthptr += code - last_code;   /* To include callout length */
+      *lengthptr += (int) (code - last_code);   /* To include callout length */
       DPRINTF((">> end branch\n"));
       }
     return TRUE;
@@ -2819,7 +2819,7 @@ for (;; ptr++)
 
       if (lengthptr != NULL)
         {
-        *lengthptr += class_utf8data - class_utf8data_base;
+        *lengthptr += (int) (class_utf8data - class_utf8data_base);
         class_utf8data = class_utf8data_base;
         }
 
@@ -2867,7 +2867,7 @@ for (;; ptr++)
           ptr++;
           }
 
-        posix_class = check_posix_name(ptr, tempptr - ptr);
+        posix_class = check_posix_name(ptr, (int) (tempptr - ptr));
         if (posix_class < 0)
           {
           *errorcodeptr = ERR30;
@@ -3626,7 +3626,7 @@ we set the flag only if there is a literal "\r" or "\n" in the class. */
         {
         uschar *lastchar = code - 1;
         while((*lastchar & 0xc0) == 0x80) lastchar--;
-        c = code - lastchar;            /* Length of UTF-8 character */
+        c = (int) (code - lastchar);    /* Length of UTF-8 character */
         memcpy(utf8_char, lastchar, c); /* Save the char */
         c |= 0x80;                      /* Flag c as a length */
         }
@@ -3894,7 +3894,7 @@ we set the flag only if there is a literal "\r" or "\n" in the class. */
       {
       register int i;
       int ketoffset = 0;
-      int len = code - previous;
+      int len = (int) (code - previous);
       uschar *bralink = NULL;
 
       /* Repeating a DEFINE group is pointless */
@@ -3915,7 +3915,7 @@ we set the flag only if there is a literal "\r" or "\n" in the class. */
         {
         register uschar *ket = previous;
         do ket += GET(ket, 1); while (*ket != OP_KET);
-        ketoffset = code - ket;
+        ketoffset = (int) (code - ket);
         }
 
       /* The case of a zero minimum is special because of the need to stick
@@ -3983,7 +3983,7 @@ we set the flag only if there is a literal "\r" or "\n" in the class. */
           /* We chain together the bracket offset fields that have to be
           filled in later when the ends of the brackets are reached. */
 
-          offset = (bralink == NULL)? 0 : previous - bralink;
+          offset = (bralink == NULL)? 0 : (int) (previous - bralink);
           bralink = previous;
           PUTINC(previous, 0, offset);
           }
@@ -4089,7 +4089,7 @@ we set the flag only if there is a literal "\r" or "\n" in the class. */
             {
             int offset;
             *code++ = OP_BRA;
-            offset = (bralink == NULL)? 0 : code - bralink;
+            offset = (bralink == NULL)? 0 : (int) (code - bralink);
             bralink = code;
             PUTINC(code, 0, offset);
             }
@@ -4110,7 +4110,7 @@ we set the flag only if there is a literal "\r" or "\n" in the class. */
         while (bralink != NULL)
           {
           int oldlinkoffset;
-          int offset = code - bralink + 1;
+          int offset = (int) (code - bralink + 1);
           uschar *bra = code - offset;
           oldlinkoffset = GET(bra, 1);
           bralink = (oldlinkoffset == 0)? NULL : bralink - oldlinkoffset;
@@ -4189,7 +4189,7 @@ we set the flag only if there is a literal "\r" or "\n" in the class. */
         tempcode += _pcre_OP_lengths[*tempcode] +
           ((*tempcode == OP_TYPEEXACT &&
              (tempcode[3] == OP_PROP || tempcode[3] == OP_NOTPROP))? 2:0);
-      len = code - tempcode;
+      len = (int) (code - tempcode);
       if (len > 0) switch (*tempcode)
         {
         case OP_STAR:  *tempcode = OP_POSSTAR; break;
@@ -4260,7 +4260,7 @@ we set the flag only if there is a literal "\r" or "\n" in the class. */
         *errorcodeptr = ERR60;
         goto FAILED;
         }
-      namelen = ptr - name;
+      namelen = (int) (ptr - name);
       for (i = 0; i < verbcount; i++)
         {
         if (namelen == verbs[i].len &&
@@ -4391,7 +4391,7 @@ we set the flag only if there is a literal "\r" or "\n" in the class. */
               recno * 10 + *ptr - '0' : -1;
           ptr++;
           }
-        namelen = ptr - name;
+        namelen = (int) (ptr - name);
 
         if ((terminator > 0 && *ptr++ != terminator) || *ptr++ != ')')
           {
@@ -4613,7 +4613,7 @@ we set the flag only if there is a literal "\r" or "\n" in the class. */
           name = ++ptr;
 
           while ((cd->ctypes[*ptr] & ctype_word) != 0) ptr++;
-          namelen = ptr - name;
+          namelen = (int) (ptr - name);
 
           /* In the pre-compile phase, just do a syntax check. */
 
@@ -4697,7 +4697,7 @@ we set the flag only if there is a literal "\r" or "\n" in the class. */
         NAMED_REF_OR_RECURSE:
         name = ++ptr;
         while ((cd->ctypes[*ptr] & ctype_word) != 0) ptr++;
-        namelen = ptr - name;
+        namelen = (int) (ptr - name);
 
         /* In the pre-compile phase, do a syntax check and set a dummy
         reference number. */
@@ -5640,7 +5640,7 @@ for (;;)
     {
     if (lengthptr == NULL)
       {
-      int branch_length = code - last_branch;
+      int branch_length = (int) (code - last_branch);
       do
         {
         int prev_length = GET(last_branch, 1);
@@ -6229,7 +6229,7 @@ regex compiled on a system with 4-byte pointers is run on another with 8-byte
 pointers. */
 
 re->magic_number = MAGIC_NUMBER;
-re->size = size;
+re->size = (int) size;
 re->options = cd->external_options;
 re->flags = cd->external_flags;
 re->dummy1 = 0;
@@ -6312,7 +6312,7 @@ if (errorcode != 0)
   {
   (pcre_free)(re);
   PCRE_EARLY_ERROR_RETURN:
-  *erroroffset = ptr - (const uschar *)pattern;
+  *erroroffset = (int) (ptr - (const uschar *)pattern);
   PCRE_EARLY_ERROR_RETURN2:
   *errorptr = find_error_text(errorcode);
   if (errorcodeptr != NULL) *errorcodeptr = errorcode;

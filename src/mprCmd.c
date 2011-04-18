@@ -564,7 +564,7 @@ int mprReadCmdPipe(MprCmd *cmd, int channel, char *buf, int bufsize)
     return rc;
 
 #else
-    return read(cmd->files[channel].fd, buf, bufsize);
+    return (int) read(cmd->files[channel].fd, buf, bufsize);
 #endif
 }
 
@@ -579,7 +579,7 @@ int mprWriteCmdPipe(MprCmd *cmd, int channel, char *buf, int bufsize)
         return -1;
     }
 #endif
-    return write(cmd->files[channel].fd, buf, bufsize);
+    return (int) write(cmd->files[channel].fd, buf, bufsize);
 }
 
 
@@ -884,7 +884,7 @@ static int sanitizeArgs(MprCmd *cmd, int argc, char **argv, char **env)
         for (i = 0; env && env[i]; i++) {
             mprLog(cmd, 6, "cmd: env[%d]: %s", i, env[i]);
         }
-        if ((cmd->env = mprAlloc(cmd, (i + 3) * sizeof(char*))) == NULL) {
+        if ((cmd->env = mprAlloc(cmd, (i + 3) * (int) sizeof(char*))) == NULL) {
             return MPR_ERR_NO_MEMORY;
         }
         hasPath = hasLibPath = 0;

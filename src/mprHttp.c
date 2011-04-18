@@ -469,8 +469,7 @@ int mprStartHttpRequest(MprHttp *http, cchar *method, cchar *requestUrl)
     MprHashTable        *headers;
     MprHash             *header;
     char                *host;
-    int64               len, written;
-    int                 port, rc;
+    int                 len, written, port, rc;
 
     mprAssert(http);
     mprAssert(method && *method);
@@ -574,11 +573,11 @@ int mprStartHttpRequest(MprHttp *http, cchar *method, cchar *requestUrl)
         mprCalcDigestNonce(http, &http->authCnonce, http->service->secret, 0, http->authRealm);
 
         mprSprintf(a1Buf, sizeof(a1Buf), "%s:%s:%s", http->user, http->authRealm, http->password);
-        len = strlen(a1Buf);
+        len = (int) strlen(a1Buf);
         ha1 = mprGetMD5Hash(req, a1Buf, len, NULL);
 
         mprSprintf(a2Buf, sizeof(a2Buf), "%s:%s", method, url->url);
-        len = strlen(a2Buf);
+        len = (int) strlen(a2Buf);
         ha2 = mprGetMD5Hash(req, a2Buf, len, NULL);
 
         qop = (http->authQop) ? http->authQop : (char*) "";
@@ -596,7 +595,7 @@ int mprStartHttpRequest(MprHttp *http, cchar *method, cchar *requestUrl)
         }
         mprFree(ha1);
         mprFree(ha2);
-        digest = mprGetMD5Hash(req, digestBuf, strlen(digestBuf), NULL);
+        digest = mprGetMD5Hash(req, digestBuf, (int) strlen(digestBuf), NULL);
 
         if (*qop == '\0') {
             mprPutFmtToBuf(outBuf, "Authorization: Digest username=\"%s\", realm=\"%s\", nonce=\"%s\", "
@@ -680,7 +679,7 @@ int mprStartHttpRequest(MprHttp *http, cchar *method, cchar *requestUrl)
     /*
      *  Write any assigned body data. Sometimes callers will invoke mprWriteHttp after this call returns.
      */
-    if (req->bodyData && writeData(http, req->bodyData, req->bodyLen, 0) < 0) {
+    if (req->bodyData && writeData(http, req->bodyData, (int) req->bodyLen, 0) < 0) {
         badRequest(http, "Can't write body data");
         unlock(http);
         return MPR_ERR_CANT_WRITE;
@@ -844,7 +843,7 @@ char *mprReadHttpString(MprHttp *http)
 {
     MprBuf      *buf;
     char        data[MPR_HTTP_BUFSIZE], *result;
-    int64       count;
+    int         count;
 
     if (http->state == MPR_HTTP_STATE_BEGIN) {
         return 0;
@@ -878,7 +877,7 @@ bool mprIsHttpComplete(MprHttp *http)
 static int getReadSize(MprHttp *http, MprBuf *buf)
 {
     MprHttpResponse     *resp;
-    int                 space;
+    int64               space;
 
     mprAssert(buf);
     resp = http->response;
@@ -895,7 +894,7 @@ static int getReadSize(MprHttp *http, MprBuf *buf)
         space = min(space, resp->contentRemaining);
     }
     mprAssert(0 < space && space <= mprGetBufSize(buf));
-    return space;
+    return (int) space;
 }
 
 
@@ -1405,7 +1404,7 @@ int mprAddHttpFormData(MprHttp *http, cchar *body, int len)
     req = http->request;
     conditionalReset(http);
 
-    req->formData = mprRealloc(req, req->formData, req->formLen + len + 1);
+    req->formData = mprRealloc(req, req->formData, (uint) req->formLen + len + 1);
     if (req->formData == 0) {
         return MPR_ERR_NO_MEMORY;
     }
@@ -1539,7 +1538,7 @@ int mprWriteHttp(MprHttp *http, cchar *buf, int len)
             return 0;
         }
         mprSprintf(countBuf, sizeof(countBuf), "\r\n%x\r\n", len);
-        if (writeData(http, countBuf, strlen(countBuf), 1) < 0) {
+        if (writeData(http, countBuf, (int) strlen(countBuf), 1) < 0) {
             req->flags |= MPR_HTTP_REQ_CHUNK_EMITTED;
             return MPR_ERR_CANT_WRITE;
         }
@@ -1590,7 +1589,7 @@ static int writeFmt(MprHttp *http, cchar *fmt, ...)
     data = mprVasprintf(http, -1, fmt, ap);
     va_end(ap);
 
-    len = strlen(data);
+    len = (int) strlen(data);
     if (mprWriteHttp(http, data, len) != len) {
         return MPR_ERR_CANT_WRITE;
     }
@@ -1676,7 +1675,7 @@ cchar *mprGetHttpMessage(MprHttp *http)
 }
 
 
-int mprGetHttpContentLength(MprHttp *http)
+int64 mprGetHttpContentLength(MprHttp *http)
 {
     if (mprWaitForHttpResponse(http, -1) < 0) {
         return 0;
@@ -1723,7 +1722,7 @@ char *mprGetHttpHeaders(MprHttp *http)
             }
         }
         headers = mprReallocStrcat(http, -1, headers, ": ", hp->data, "\n", NULL);
-        len = strlen(headers);
+        len = (int) strlen(headers);
         hp = mprGetNextHash(resp->headers, hp);
     }
     return headers;
@@ -2036,7 +2035,7 @@ static bool parseChunk(MprHttp *http, MprBuf *buf)
         badRequest(http, "Bad chunk specification");
         return 1;
     }
-    mprAdjustBufStart(buf, cp - start + 1);
+    mprAdjustBufStart(buf, (int) (cp - start + 1));
     return 1;
 }
 

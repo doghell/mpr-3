@@ -225,7 +225,7 @@ char *mprGetMD5Hash(MprCtx ctx, cchar *buf, int length, cchar *prefix)
     *r = '\0';
 
     len = (prefix) ? (int) strlen(prefix) : 0;
-    str = (char*) mprAlloc(ctx, sizeof(result) + len);
+    str = (char*) mprAlloc(ctx, (int) sizeof(result) + len);
     if (str) {
         if (prefix) {
             strcpy(str, prefix);

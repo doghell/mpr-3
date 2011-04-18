@@ -514,7 +514,8 @@ void mprDisconnectSocket(MprSocket *sp)
 
 static void disconnectSocket(MprSocket *sp)
 {
-    char    buf[16];
+    char    buf[MPR_BUFSIZE];
+    int     i;
 
     /*
      *  Defensive lock buster. Use try lock incase an operation is blocked somewhere with a lock asserted. 
@@ -525,13 +526,15 @@ static void disconnectSocket(MprSocket *sp)
     }
     if (sp->fd >= 0 && !(sp->flags & MPR_SOCKET_EOF)) {
         /*
-         *  Read any outstanding read data to minimize resets. Then do a shutdown to send a FIN and read 
+         *  Read a reasonable amount of outstanding data to minimize resets. Then do a shutdown to send a FIN and read 
          *  outstanding data.  All non-blocking.
          */
         mprLog(sp, 6, "Disconnect socket %d", sp->fd);
         mprSetSocketBlockingMode(sp, 0);
-        while (recv(sp->fd, buf, sizeof(buf), 0) > 0) {
-            ;
+        for (i = 0; i < 8; i++) {
+            if (recv(sp->fd, buf, sizeof(buf), 0) <= 0) {
+                break;
+            }
         }
         shutdown(sp->fd, SHUT_RDWR);
         sp->flags |= MPR_SOCKET_EOF;
@@ -772,11 +775,10 @@ static int readSocket(MprSocket *sp, void *buf, int bufsize)
 again:
     if (sp->flags & MPR_SOCKET_DATAGRAM) {
         len = sizeof(server);
-        bytes = recvfrom(sp->fd, buf, bufsize, MSG_NOSIGNAL, (struct sockaddr*) &server, (socklen_t*) &len);
+        bytes = (int) recvfrom(sp->fd, buf, bufsize, MSG_NOSIGNAL, (struct sockaddr*) &server, (socklen_t*) &len);
     } else {
-        bytes = recv(sp->fd, buf, bufsize, MSG_NOSIGNAL);
+        bytes = (int) recv(sp->fd, buf, bufsize, MSG_NOSIGNAL);
     }
-
     if (bytes < 0) {
         errCode = mprGetSocketError(sp);
         if (errCode == EINTR) {
@@ -861,9 +863,9 @@ static int writeSocket(MprSocket *sp, void *buf, int bufsize)
         while (len > 0) {
             unlock(sp);
             if ((sp->flags & MPR_SOCKET_BROADCAST) || (sp->flags & MPR_SOCKET_DATAGRAM)) {
-                written = sendto(sp->fd, &((char*) buf)[sofar], len, MSG_NOSIGNAL, addr, addrlen);
+                written = (int) sendto(sp->fd, &((char*) buf)[sofar], len, MSG_NOSIGNAL, addr, addrlen);
             } else {
-                written = send(sp->fd, &((char*) buf)[sofar], len, MSG_NOSIGNAL);
+                written = (int) send(sp->fd, &((char*) buf)[sofar], len, MSG_NOSIGNAL);
             }
             lock(sp);
 
@@ -912,7 +914,7 @@ int mprWriteSocketVector(MprSocket *sp, MprIOVec *iovec, int count)
 
 #if BLD_UNIX_LIKE
     if (sp->ssl == 0) {
-        return writev(sp->fd, (const struct iovec*) iovec, count);
+        return (int) writev(sp->fd, (const struct iovec*) iovec, count);
     } else
 #endif
     {
@@ -955,7 +957,7 @@ static int localSendfile(MprSocket *sp, MprFile *file, MprOffset offset, int len
     char    buf[MPR_BUFSIZE];
 
     mprSeek(file, SEEK_SET, (int) offset);
-    len = min(len, sizeof(buf));
+    len = min(len, (int) sizeof(buf));
     if ((len = mprRead(file, buf, len)) < 0) {
         mprAssert(0);
         return MPR_ERR_CANT_READ;
@@ -970,7 +972,7 @@ static int localSendfile(MprSocket *sp, MprFile *file, MprOffset offset, int len
  *  Works even with a null "file" to just output the headers.
  */
 MprOffset mprSendFileToSocket(MprSocket *sock, MprFile *file, MprOffset offset, int64 bytes, MprIOVec *beforeVec, 
-    int64 beforeCount, MprIOVec *afterVec, int64 afterCount)
+    int beforeCount, MprIOVec *afterVec, int afterCount)
 {
 #if MACOSX && __MAC_OS_X_VERSION_MIN_REQUIRED >= 1050
     struct sf_hdtr  def;
@@ -983,9 +985,9 @@ MprOffset mprSendFileToSocket(MprSocket *sock, MprFile *file, MprOffset offset, 
 
 #if MACOSX && __MAC_OS_X_VERSION_MIN_REQUIRED >= 1050
     written = bytes;
-    def.hdr_cnt = beforeCount;
+    def.hdr_cnt = (int) beforeCount;
     def.headers = (beforeCount > 0) ? (struct iovec*) beforeVec: 0;
-    def.trl_cnt = afterCount;
+    def.trl_cnt = (int) afterCount;
     def.trailers = (afterCount > 0) ? (struct iovec*) afterVec: 0;
 
     if (file && file->fd >= 0) {
@@ -998,11 +1000,12 @@ MprOffset mprSendFileToSocket(MprSocket *sock, MprFile *file, MprOffset offset, 
         /*
          *  Either !MACOSX or no file is opened
          */
-        done = written = 0;
-        for (i = toWriteBefore = 0; i < beforeCount; i++) {
+        done = 0;
+        written = 0;
+        for (i = 0, toWriteBefore = 0; i < beforeCount; i++) {
             toWriteBefore += (int) beforeVec[i].len;
         }
-        for (i = toWriteAfter = 0; i < afterCount; i++) {
+        for (i = 0, toWriteAfter = 0; i < afterCount; i++) {
             toWriteAfter += (int) afterVec[i].len;
         }
         toWriteFile = bytes - toWriteBefore - toWriteAfter;
@@ -1027,7 +1030,7 @@ MprOffset mprSendFileToSocket(MprSocket *sock, MprFile *file, MprOffset offset, 
 #if LINUX && !__UCLIBC__
             rc = sendfile(sock->fd, file->fd, &off, toWriteFile);
 #else
-            rc = localSendfile(sock, file, offset, toWriteFile);
+            rc = localSendfile(sock, file, offset, (int) toWriteFile);
 #endif
             if (rc > 0) {
                 written += rc;

@@ -107,7 +107,7 @@ void mprAddNullToBuf(MprBuf *bp)
 {
     int     space;
 
-    space = bp->endbuf - bp->end;
+    space = (int) (bp->endbuf - bp->end);
     if (space < (int) sizeof(char)) {
         if (mprGrowBuf(bp, 1) < 0) {
             return;
@@ -332,7 +332,7 @@ int mprPutSubStringToBuf(MprBuf *bp, cchar *str, int count)
     int     len;
 
     if (str) {
-        len = strlen(str);
+        len = (int) strlen(str);
         len = min(len, count);
         if (len > 0) {
             return mprPutBlockToBuf(bp, str, len);

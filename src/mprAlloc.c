@@ -127,8 +127,8 @@ Mpr *mprCreateAllocService(MprAllocNotifier cback, MprDestructor destructor)
      *      Destructor
      */
     usize = sizeof(Mpr) + sizeof(MprDestructor);
-    size = MPR_ALLOC_ALIGN(MPR_ALLOC_HDR_SIZE + usize);
-    usize = size - MPR_ALLOC_HDR_SIZE;
+    size = (uint) MPR_ALLOC_ALIGN(MPR_ALLOC_HDR_SIZE + usize);
+    usize = (uint) (size - MPR_ALLOC_HDR_SIZE);
 
     bp = (MprBlk*) allocMemory(size);
     if (bp == 0) {
@@ -206,8 +206,8 @@ static MprCtx allocHeap(MprCtx ctx, cchar *name, uint heapSize, bool threadSafe,
      */
     headersSize = MPR_ALLOC_ALIGN(sizeof(MprHeap) + sizeof(MprRegion));
     usize = headersSize + heapSize;
-    size = MPR_PAGE_ALIGN(MPR_ALLOC_HDR_SIZE + usize, mpr->alloc.pageSize);
-    usize = (size - MPR_ALLOC_HDR_SIZE);
+    size = (int) MPR_PAGE_ALIGN(MPR_ALLOC_HDR_SIZE + usize, mpr->alloc.pageSize);
+    usize = (int) (size - MPR_ALLOC_HDR_SIZE);
     heapSize = usize - headersSize;
 
     parent = GET_BLK(ctx);
@@ -373,7 +373,7 @@ void *_mprAllocWithDestructor(MprCtx ctx, uint size, MprDestructor destructor)
     mprAssert(VALID_CTX(ctx));
     mprAssert(size > 0);
 
-    ptr = _mprAlloc(ctx, size + sizeof(MprDestructor));
+    ptr = _mprAlloc(ctx, size + (int) sizeof(MprDestructor));
     mprAssert(ptr);
     if (ptr == 0) {
         return 0;
@@ -1463,11 +1463,11 @@ static void sysinit(Mpr *mpr)
 
 #if MACOSX
     #ifdef _SC_NPROCESSORS_ONLN
-        ap->numCpu = sysconf(_SC_NPROCESSORS_ONLN);
+        ap->numCpu = (int) sysconf(_SC_NPROCESSORS_ONLN);
     #else
         ap->numCpu = 1;
     #endif
-    ap->pageSize = sysconf(_SC_PAGESIZE);
+    ap->pageSize = (int) sysconf(_SC_PAGESIZE);
 #elif SOLARIS
 {
     FILE *ptr;
@@ -1756,13 +1756,13 @@ static void printMprHeaps(MprCtx ctx)
         available = 0;
         total = 0;
         for (region = heap->depleted; region; region = region->next) {
-            available += (region->size - (region->nextMem - region->memory));
+            available += (int) (region->size - (region->nextMem - region->memory));
             total += region->size;
         }
         remaining = 0;
         if (heap->region) {
             total += heap->region->size;
-            remaining = (region->size - (region->nextMem - region->memory));
+            remaining = (int) (region->size - (region->nextMem - region->memory));
         }
 
         mprLog(ctx, 0, "    Allocated memory         %,10d K",          heap->allocBytes / 1024);

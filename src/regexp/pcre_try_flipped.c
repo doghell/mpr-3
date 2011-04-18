@@ -106,8 +106,8 @@ if (byteflip(re->magic_number, sizeof(re->magic_number)) != MAGIC_NUMBER)
   return NULL;
 
 *internal_re = *re;           /* To copy other fields */
-internal_re->size = byteflip(re->size, sizeof(re->size));
-internal_re->options = byteflip(re->options, sizeof(re->options));
+internal_re->size = (int) byteflip(re->size, sizeof(re->size));
+internal_re->options = (int) byteflip(re->options, sizeof(re->options));
 internal_re->flags = (pcre_uint16)byteflip(re->flags, sizeof(re->flags));
 internal_re->top_bracket =
   (pcre_uint16)byteflip(re->top_bracket, sizeof(re->top_bracket));
@@ -127,8 +127,8 @@ internal_re->name_count =
 if (study != NULL)
   {
   *internal_study = *study;   /* To copy other fields */
-  internal_study->size = byteflip(study->size, sizeof(study->size));
-  internal_study->options = byteflip(study->options, sizeof(study->options));
+  internal_study->size = (int) byteflip(study->size, sizeof(study->size));
+  internal_study->options = (int) byteflip(study->options, sizeof(study->options));
   }
 
 return internal_re;

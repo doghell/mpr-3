@@ -65,7 +65,7 @@ static void testBasicHttpGet(MprTestGroup *gp)
             mprLog(gp, 0, "HTTP response code %d", code);
         }
         assert(mprGetHttpError(http) != 0);
-        length = mprGetHttpContentLength(http);
+        length = (int) mprGetHttpContentLength(http);
         assert(length != 0);
     }
     mprFree(http);

@@ -172,7 +172,7 @@ int mprWrite(MprFile *file, cvoid *buf, uint count)
 
 int mprWriteString(MprFile *file, cchar *str)
 {
-    return mprWrite(file, str, strlen(str));
+    return mprWrite(file, str, (uint) strlen(str));
 }
 
 
@@ -223,7 +223,7 @@ int mprFlush(MprFile *file)
 }
 
 
-long mprSeek(MprFile *file, int seekType, long pos)
+MprOff mprSeek(MprFile *file, int seekType, MprOff pos)
 {
     MprFileSystem   *fs;
 
@@ -358,7 +358,7 @@ int mprPuts(MprFile *file, cchar *str)
     int     total, bytes, count;
 
     mprAssert(file);
-    count = strlen(str);
+    count = (int) strlen(str);
 
     /*
      *  Buffer output and flush when full.

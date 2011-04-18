@@ -127,7 +127,7 @@ int mprWaitForIO(MprWaitService *ws, int timeout)
     }
 #endif
     count = ws->fdsCount;
-    if ((fds = mprMemdup(ws, ws->fds, count * sizeof(struct pollfd))) == 0) {
+    if ((fds = mprMemdup(ws, ws->fds, count * (int) sizeof(struct pollfd))) == 0) {
         mprUnlock(ws->mutex);
         return MPR_ERR_NO_MEMORY;
     }
@@ -331,7 +331,7 @@ static void growFds(MprWaitService *ws)
 
     len = max(ws->fdsSize, mprGetListCount(ws->handlers) + 1);
     if (len > ws->fdsSize) {
-        ws->fds = mprRealloc(ws, ws->fds, len * sizeof(struct pollfd));
+        ws->fds = mprRealloc(ws, ws->fds, len * (int) sizeof(struct pollfd));
         if (ws->fds == 0) {
             /*  Global memory allocation handler will handle this */
             return;

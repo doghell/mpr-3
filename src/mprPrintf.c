@@ -194,7 +194,7 @@ int mprStaticPrintf(MprCtx ctx, cchar *fmt, ...)
     va_start(ap, fmt);
     sprintfCore(NULL, buf, MPR_MAX_STRING, fmt, ap);
     va_end(ap);
-    return mprWrite(fs->stdOutput, buf, strlen(buf));
+    return mprWrite(fs->stdOutput, buf, (int) strlen(buf));
 }
 
 
@@ -212,7 +212,7 @@ int mprStaticPrintfError(MprCtx ctx, cchar *fmt, ...)
     va_start(ap, fmt);
     sprintfCore(NULL, buf, MPR_MAX_STRING, fmt, ap);
     va_end(ap);
-    return mprWrite(fs->stdError, buf, strlen(buf));
+    return mprWrite(fs->stdError, buf, (int) strlen(buf));
 }
 
 
@@ -738,7 +738,7 @@ static void outFloat(MprCtx ctx, Format *fmt, char specChar, double value)
         sprintf(result, "%*.*e", fmt->width, fmt->precision, value);
     }
 
-    len = strlen(result);
+    len = (int) strlen(result);
     fill = fmt->width - len;
     if (fmt->flags & SPRINTF_COMMA) {
         if (((len - 1) / 3) > 0) {
@@ -861,7 +861,7 @@ char *mprDtoa(MprCtx ctx, double value, int ndigits, int mode, int flags)
             Note: ndigits < 0 seems to trim N digits from the end with rounding.
          */
         ip = intermediate = dtoa(value, mode, ndigits, &period, &sign, NULL);
-        len = strlen(intermediate);
+        len = (int) strlen(intermediate);
         exponent = period - 1;
 
         if (mode == MPR_DTOA_ALL_DIGITS && ndigits == 0) {
@@ -906,7 +906,7 @@ char *mprDtoa(MprCtx ctx, double value, int ndigits, int mode, int flags)
                         count = totalDigits + sign - mprGetBufLength(buf);
                         mprPutCharToBuf(buf, '.');
                         mprPutSubStringToBuf(buf, &ip[period], count);
-                        mprPutPadToBuf(buf, '0', count - strlen(&ip[period]));
+                        mprPutPadToBuf(buf, '0', count - (int) strlen(&ip[period]));
                     }
                 }
 

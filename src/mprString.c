@@ -195,7 +195,7 @@ char *mprReallocStrcat(MprCtx ctx, int destMax, char *buf, cchar *src, ...)
         destMax = INT_MAX;
     }
 
-    existingLen = (buf) ? strlen(buf) : 0;
+    existingLen = (buf) ? (int) strlen(buf) : 0;
     required = existingLen + 1;
 
     str = (char*) src;
@@ -367,7 +367,7 @@ int mprStrcmpCount(cchar *str1, cchar *str2, int len)
 
 int mprStrStartsWith(cchar *dest, cchar *pat)
 {
-    return mprStrcmpCount(dest, pat, strlen(pat)) == 0;
+    return mprStrcmpCount(dest, pat, (int) strlen(pat)) == 0;
 }
 
 
@@ -627,7 +627,7 @@ int mprMakeArgv(MprCtx ctx, cchar *program, cchar *cmd, int *argcp, char ***argv
      */
     size = (int) strlen(cmd) + 1;
 
-    buf = (char*) mprAlloc(ctx, (MPR_MAX_ARGC * sizeof(char*)) + size);
+    buf = (char*) mprAlloc(ctx, (MPR_MAX_ARGC * (int) sizeof(char*)) + size);
     if (buf == 0) {
         return MPR_ERR_NO_MEMORY;
     }

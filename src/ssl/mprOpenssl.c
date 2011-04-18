@@ -97,7 +97,7 @@ int mprCreateOpenSslModule(MprCtx ctx, bool lazy)
      *  Configure the global locks
      */
     numLocks = CRYPTO_num_locks();
-    locks = (MprMutex**) mprAllocWithDestructor(mpr, numLocks * sizeof(MprMutex*), lockDestructor);
+    locks = (MprMutex**) mprAllocWithDestructor(mpr, (int) (numLocks * sizeof(MprMutex*)), lockDestructor);
     for (i = 0; i < numLocks; i++) {
         locks[i] = mprCreateLock(locks);
     }

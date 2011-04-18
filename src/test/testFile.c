@@ -76,9 +76,10 @@ static void testBasicIO(MprTestGroup *gp)
 {
     MprFile         *file;
     MprPath         info;
-    char            buf[512];
-    int             pos, len, rc;
     MprTestFile     *ts;
+    MprOff          pos;
+    char            buf[512];
+    int             len, rc;
 
     ts = (MprTestFile*) gp->data;
     
@@ -140,9 +141,10 @@ static void testBufferedIO(MprTestGroup *gp)
 {
     MprFile         *file;
     MprPath         info;
-    char            buf[512], *str;
-    int             pos, len, rc, c;
+    MprOff          pos;
     MprTestFile     *ts;
+    char            buf[512], *str;
+    int             len, rc, c;
 
     ts = (MprTestFile*) gp->data;
     
@@ -197,7 +199,7 @@ static void testBufferedIO(MprTestGroup *gp)
     assert(c == 'a');
     str = mprGets(file, buf, sizeof(buf));
     assert(str != 0);
-    len = strlen(str);
+    len = (int) strlen(str);
     
     assert(len == 5);
     buf[len] = '\0';

@@ -713,7 +713,7 @@ for (;;)
       save_capture_last = md->capture_last;
 
       DPRINTF(("saving %d %d %d\n", save_offset1, save_offset2, save_offset3));
-      md->offset_vector[md->offset_end - number] = eptr - md->start_subject;
+      md->offset_vector[md->offset_end - number] = (int) (eptr - md->start_subject);
 
       flags = (op == OP_SCBRA)? match_cbegroup : 0;
       do
@@ -994,9 +994,9 @@ for (;;)
       cb.callout_number   = ecode[1];
       cb.offset_vector    = md->offset_vector;
       cb.subject          = (PCRE_SPTR)md->start_subject;
-      cb.subject_length   = md->end_subject - md->start_subject;
-      cb.start_match      = mstart - md->start_subject;
-      cb.current_position = eptr - md->start_subject;
+      cb.subject_length   = (int) (md->end_subject - md->start_subject);
+      cb.start_match      = (int) (mstart - md->start_subject);
+      cb.current_position = (int) (eptr - md->start_subject);
       cb.pattern_position = GET(ecode, 2);
       cb.next_item_length = GET(ecode, 2 + LINK_SIZE);
       cb.capture_top      = offset_top/2;
@@ -1265,7 +1265,7 @@ for (;;)
         {
         md->offset_vector[offset] =
           md->offset_vector[md->offset_end - number];
-        md->offset_vector[offset+1] = eptr - md->start_subject;
+        md->offset_vector[offset+1] = (int) (eptr - md->start_subject);
         if (offset_top <= offset) offset_top = offset + 2;
         }
 
@@ -1777,7 +1777,7 @@ for (;;)
       referenced subpattern. */
 
       if (offset >= offset_top || md->offset_vector[offset] < 0)
-        length = (md->jscript_compat)? 0 : md->end_subject - eptr + 1;
+        length = (md->jscript_compat)? 0 : (int) (md->end_subject - eptr + 1);
       else
         length = md->offset_vector[offset+1] - md->offset_vector[offset];
 
@@ -3930,7 +3930,7 @@ for (;;)
           case OP_ANYBYTE:
           c = max - min;
           if (c > (unsigned int)(md->end_subject - eptr))
-            c = md->end_subject - eptr;
+            c = (int) (md->end_subject - eptr);
           eptr += c;
           break;
 
@@ -4121,7 +4121,7 @@ for (;;)
           case OP_ANYBYTE:
           c = max - min;
           if (c > (unsigned int)(md->end_subject - eptr))
-            c = md->end_subject - eptr;
+            c = (int) (md->end_subject - eptr);
           eptr += c;
           break;
 
@@ -4445,7 +4445,7 @@ tables = external_re->tables;
 
 if (extra_data != NULL)
   {
-  register unsigned int flags = extra_data->flags;
+  register unsigned int flags = (unsigned int) extra_data->flags;
   if ((flags & PCRE_EXTRA_STUDY_DATA) != 0)
     study = (const pcre_study_data *)extra_data->study_data;
   if ((flags & PCRE_EXTRA_MATCH_LIMIT) != 0)
@@ -4947,8 +4947,8 @@ if (rc == MATCH_MATCH)
 
   if (offsetcount < 2) rc = 0; else
     {
-    offsets[0] = md->start_match_ptr - md->start_subject;
-    offsets[1] = md->end_match_ptr - md->start_subject;
+    offsets[0] = (int) (md->start_match_ptr - md->start_subject);
+    offsets[1] = (int) (md->end_match_ptr - md->start_subject);
     }
 
   DPRINTF((">>>> returning %d\n", rc));

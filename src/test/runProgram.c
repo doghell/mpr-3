@@ -65,8 +65,8 @@ MAIN(runProgramMain, int argc, char* argv[])
      *  Read the input
      */
     sofar = 0;
-    while ((len = read(0, buf, sizeof(buf))) > 0) {
-        sofar += write(1, buf, len);
+    while ((len = (int) read(0, buf, sizeof(buf))) > 0) {
+        sofar += (int) write(1, buf, len);
     }
     if (exitCode != 99) {
         mprPuts(out, "END");

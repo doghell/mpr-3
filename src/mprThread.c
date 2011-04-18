@@ -328,7 +328,7 @@ void mprSetThreadPriority(MprThread *tp, int newPriority)
 #elif VXWORKS
     taskPrioritySet(tp->osThread, osPri);
 #else
-    setpriority(PRIO_PROCESS, tp->pid, osPri);
+    setpriority(PRIO_PROCESS, (uint) tp->pid, osPri);
 #endif
     tp->priority = newPriority;
     mprUnlock(tp->mutex);

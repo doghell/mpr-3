@@ -435,7 +435,7 @@ static int getTimeZoneOffsetFromTm(MprCtx ctx, struct tm *tp)
     }
     return offset;
 #elif BLD_UNIX_LIKE && !CYGWIN
-    return tp->tm_gmtoff * MS_PER_SEC;
+    return (int) tp->tm_gmtoff * MS_PER_SEC;
 #else
     struct timezone     tz;
     struct timeval      tv;
@@ -473,7 +473,7 @@ static MprTime makeTime(MprCtx ctx, struct tm *tp)
 
 static MprTime daysSinceEpoch(int year)
 {
-    int     days;
+    MprTime     days;
 
     days = ((MprTime) 365) * (year - 1970);
     days += ((year-1) / 4) - (1970 / 4);
@@ -700,7 +700,9 @@ char *mprFormatTime(MprCtx ctx, cchar *fmt, struct tm *tp)
         tp = &tm;
     }
     endp = &localFmt[sizeof(localFmt) - 1];
-    for (cp = fmt, size = sizeof(localFmt) - 1; *cp && dp < &localFmt[sizeof(localFmt) - 32]; size = endp - dp - 1) {
+    cp = fmt;
+    size = (int) sizeof(localFmt) - 1;
+    for (; *cp && dp < &localFmt[sizeof(localFmt) - 32]; size = (int) (endp - dp - 1)) {
         if (*cp == '%') {
             *dp++ = *cp++;
         again:
@@ -718,7 +720,7 @@ char *mprFormatTime(MprCtx ctx, cchar *fmt, struct tm *tp)
 
             case 'C':
                 dp--;
-                mprItoa(dp, size, (int64) (1900 + tp->tm_year) / 100, 10);
+                mprItoa(dp, size, (int64) (((1900 + tp->tm_year)) / 100), 10);
                 dp += strlen(dp);
                 cp++;
                 break;

@@ -146,8 +146,8 @@ static void testWithData(MprTestGroup *gp)
 
     for (i = 0; i < 10; i++) {
         mprSprintf(line, sizeof(line), "line %d\n", i);
-        len = strlen(line);
-        rc = write(fd, line, len);
+        len = (int) strlen(line);
+        rc = (int) write(fd, line, len);
         assert(rc == len);
     }
     mprCloseCmdFd(cmd, MPR_CMD_STDIN);
