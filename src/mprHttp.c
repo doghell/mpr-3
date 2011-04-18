@@ -70,7 +70,7 @@ MprHttpCode MprHttpCodes[] = {
     { 404, "404", "Not Found" },
     { 405, "405", "Method Not Allowed" },
     { 406, "406", "Not Acceptable" },
-    { 408, "408", "Request Time-out" },
+    { 408, "408", "Request Timeout" },
     { 409, "409", "Conflict" },
     { 410, "410", "Length Required" },
     { 411, "411", "Length Required" },
@@ -83,7 +83,7 @@ MprHttpCode MprHttpCodes[] = {
     { 501, "501", "Not Implemented" },
     { 502, "502", "Bad Gateway" },
     { 503, "503", "Service Unavailable" },
-    { 504, "504", "Gateway Time-out" },
+    { 504, "504", "Gateway Timeout" },
     { 505, "505", "Http Version Not Supported" },
     { 507, "507", "Insufficient Storage" },
 
