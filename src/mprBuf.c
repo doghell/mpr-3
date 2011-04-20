@@ -431,7 +431,7 @@ int mprGrowBuf(MprBuf *bp, int need)
 /*
  *  Add a number to the buffer (always null terminated).
  */
-int mprPutIntToBuf(MprBuf *bp, int i)
+int mprPutIntToBuf(MprBuf *bp, int64 i)
 {
     char    numBuf[16];
     int     rc;

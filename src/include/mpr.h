@@ -858,7 +858,7 @@ extern int mprPutBlockToBuf(MprBuf *buf, cchar *ptr, int size);
  *  @returns Zero if successful and otherwise a negative error code 
  *  @ingroup MprBuf
  */
-extern int mprPutIntToBuf(MprBuf *buf, int i);
+extern int mprPutIntToBuf(MprBuf *buf, int64 i);
 
 /**
  *  Put a string to the buffer.
