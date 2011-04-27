@@ -28,7 +28,7 @@ void mprStopOsService(MprOsService *os)
 }
 
 
-int access(const char *path, int mode)
+int access(cchar *path, int mode)
 {
     struct stat sbuf;
 
