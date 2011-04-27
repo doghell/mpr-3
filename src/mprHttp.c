@@ -883,6 +883,7 @@ static int getReadSize(MprHttp *http, MprBuf *buf)
     resp = http->response;
     mprAssert(resp);
 
+    mprResetBufIfEmpty(buf);
     space = mprGetBufSpace(buf);
     if (space < MPR_HTTP_BUFSIZE) {
         if (mprGrowBuf(buf, MPR_HTTP_BUFSIZE) < 0) {
