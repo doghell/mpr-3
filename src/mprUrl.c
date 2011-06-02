@@ -190,13 +190,13 @@ MprUri *mprParseUri(MprCtx ctx, cchar *uri)
         if ((last_delim = strrchr(up->url, '/')) != NULL) {
             if (last_delim <= cp) {
                 up->ext = cp + 1;
-#if BLD_WIN_LIKE
+#if UNUSED && BLD_WIN_LIKE
                 mprStrLower(up->ext);
 #endif
             }
         } else {
             up->ext = cp + 1;
-#if BLD_WIN_LIKE
+#if UNUSED && BLD_WIN_LIKE
             mprStrLower(up->ext);
 #endif
         }
