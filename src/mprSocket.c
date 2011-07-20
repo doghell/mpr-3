@@ -1376,7 +1376,7 @@ int mprGetSocketInfo(MprCtx ctx, cchar *host, int port, int *family, int *protoc
     }
     v6 = ipv6(host);
     hints.ai_socktype = SOCK_STREAM;
-    if (host && *host) {
+    if (host) {
         hints.ai_family = v6 ? AF_INET6 : AF_INET;
     } else {
         hints.ai_family = AF_UNSPEC;
@@ -1397,7 +1397,7 @@ int mprGetSocketInfo(MprCtx ctx, cchar *host, int port, int *family, int *protoc
                 break;
             }
         } else {
-            if (r->ai_family == AF_INET) {
+            if (r->ai_family == AF_INET || host == 0) {
                 break;
             }
         }
@@ -1572,7 +1572,7 @@ static int ipv6(cchar *ip)
     int     colons;
 
     if (ip == 0 || *ip == 0) {
-        return 0;
+        return 1;
     }
     colons = 0;
     for (cp = (char*) ip; ((*cp != '\0') && (colons < 2)) ; cp++) {
