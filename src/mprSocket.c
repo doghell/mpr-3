@@ -1376,7 +1376,7 @@ int mprGetSocketInfo(MprCtx ctx, cchar *host, int port, int *family, int *protoc
     }
     v6 = ipv6(host);
     hints.ai_socktype = SOCK_STREAM;
-    if (host) {
+    if (host && *host) {
         hints.ai_family = v6 ? AF_INET6 : AF_INET;
     } else {
         hints.ai_family = AF_UNSPEC;
